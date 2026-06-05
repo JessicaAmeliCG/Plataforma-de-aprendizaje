@@ -1,0 +1,103 @@
+version: "3.9"
+
+# ============================================================
+# YourCourse — Docker Compose (Entorno de Desarrollo Local)
+# Servicios: db (PostgreSQL 15), backend (Node.js), frontend (React/Vite)
+# ============================================================
+
+networks:
+  yourcourse_net:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
+
+services:
+
+  # ─────────────────────────────────────────────
+  # BASE DE DATOS — PostgreSQL 15
+  # ─────────────────────────────────────────────
+  db:
+    image: postgres:15-alpine
+    container_name: yourcourse_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-yourcourse}
+      POSTGRES_USER: ${POSTGRES_USER:-yourcourse_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-yourcourse_secret}
+    volumes:
+      # Script inicial de estructura de la BD
+      - ./docker/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      # Volumen persistente para datos
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - yourcourse_net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-yourcourse_user} -d ${POSTGRES_DB:-yourcourse}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─────────────────────────────────────────────
+  # BACKEND — Node.js (Express) en puerto 3000
+  # ─────────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: development
+    container_name: yourcourse_backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      # Conexión a PostgreSQL (usa el nombre de servicio como host en la red interna)
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: ${POSTGRES_DB:-yourcourse}
+      DB_USER: ${POSTGRES_USER:-yourcourse_user}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-yourcourse_secret}
+      DATABASE_URL: postgres://${POSTGRES_USER:-yourcourse_user}:${POSTGRES_PASSWORD:-yourcourse_secret}@db:5432/${POSTGRES_DB:-yourcourse}
+      # JWT
+      JWT_SECRET: ${JWT_SECRET:-supersecretjwtkey_changeme_in_production}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
+      # CORS — permite peticiones del frontend en red interna
+      CORS_ORIGIN: http://localhost:5173
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    ports:
+      - "3000:3000"
+    networks:
+      - yourcourse_net
+
+  # ─────────────────────────────────────────────
+  # FRONTEND — React + Vite en puerto 5173
+  # ─────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: development
+    container_name: yourcourse_frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    environment:
+      NODE_ENV: development
+      # Vite expone las variables con prefijo VITE_
+      VITE_API_URL: http://localhost:3000/api
+      VITE_APP_NAME: YourCourse
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "5173:5173"
+    networks:
+      - yourcourse_net
