@@ -33,6 +33,8 @@ YourCourse/backend/uploads/*
 # Datos locales (bases de datos SQLite, etc.)
 # =============================================
 YourCourse/backend/data/*.db
+YourCourse/backend/data/*.db-shm
+YourCourse/backend/data/*.db-wal
 YourCourse/backend/data/*.sqlite
 YourCourse/backend/data/*.sqlite3
 
