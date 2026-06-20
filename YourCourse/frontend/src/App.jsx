@@ -15,7 +15,6 @@ import StudentLayout    from './layouts/StudentLayout'
 import StudentDashboard from './pages/StudentDashboard'
 import StudentCursoViewer from './pages/StudentCursoViewer'
 import useAuthStore     from './stores/authStore'
-import { useEffect } from 'react'
 import PageTransition   from './components/PageTransition'
 
 function PrivateRoute({ children }) {
@@ -23,28 +22,8 @@ function PrivateRoute({ children }) {
   return token ? children : <Navigate to="/login" replace />;
 }
 
+
 function App() {
-  // Inicializar temas globalmente
-  useEffect(() => {
-    const root = document.documentElement;
-    
-    // Tema oscuro/claro
-    const tema = localStorage.getItem('yc_tema') || 'system';
-    if (tema === 'dark')  root.classList.add('dark');
-    else if (tema === 'light') root.classList.remove('dark');
-    else {
-      if (window.matchMedia('(prefers-color-scheme: dark)').matches) root.classList.add('dark');
-      else root.classList.remove('dark');
-    }
-
-    // Estilo visual (colores)
-    const estilo = localStorage.getItem('yc_estilo') || 'profesional';
-    root.classList.remove('theme-vibrante', 'theme-bosque', 'theme-oceano', 'theme-ocaso');
-    if (estilo !== 'profesional') {
-      root.classList.add(`theme-${estilo}`);
-    }
-  }, []);
-
   return (
     <BrowserRouter>
       <PageTransition>

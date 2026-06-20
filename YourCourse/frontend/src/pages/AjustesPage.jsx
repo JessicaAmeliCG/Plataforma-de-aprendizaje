@@ -14,11 +14,11 @@ import { useI18n, useT } from '../contexts/I18nContext';
 
 // ── Reglas de política de contraseñas (sincronizadas con el backend) ────────────
 const REGLAS_PWD = [
-  { id: 'longitud',  label: 'Mínimo 10 caracteres',              test: (p) => p.length >= 10 },
-  { id: 'mayuscula', label: 'Al menos una mayúscula (A-Z)',       test: (p) => /[A-Z]/.test(p) },
-  { id: 'minuscula', label: 'Al menos una minúscula (a-z)',       test: (p) => /[a-z]/.test(p) },
-  { id: 'numero',    label: 'Al menos un número (0-9)',           test: (p) => /[0-9]/.test(p) },
-  { id: 'especial',  label: 'Al menos un símbolo (!@#$%^&*...)', test: (p) => /[^a-zA-Z0-9]/.test(p) },
+  { id: 'longitud',  labelKey: 'pwd.rule.longitud',  test: (p) => p.length >= 10 },
+  { id: 'mayuscula', labelKey: 'pwd.rule.mayuscula',  test: (p) => /[A-Z]/.test(p) },
+  { id: 'minuscula', labelKey: 'pwd.rule.minuscula',  test: (p) => /[a-z]/.test(p) },
+  { id: 'numero',    labelKey: 'pwd.rule.numero',     test: (p) => /[0-9]/.test(p) },
+  { id: 'especial',  labelKey: 'pwd.rule.especial',   test: (p) => /[^a-zA-Z0-9]/.test(p) },
 ];
 
 // ─── Constantes ───────────────────────────────────────────────────────────────
@@ -193,7 +193,7 @@ export default function AjustesPage() {
   // ── Guardar perfil ────────────────────────────────────────────────────────
   const handleSavePerfil = async () => {
     if (!nombre.trim() || nombre.trim().length < 2) {
-      showToast('El nombre debe tener al menos 2 caracteres.', 'error'); return;
+      showToast(t('settings.nameMinLength'), 'error'); return;
     }
     setSavingPerfil(true);
     try {
@@ -217,13 +217,13 @@ export default function AjustesPage() {
 
   // ── Cambiar contraseña ────────────────────────────────────────────────────
   const handleSavePwd = async () => {
-    if (!currentPwd || !newPwd || !confirmPwd) { showToast('Completa todos los campos.', 'error'); return; }
-    if (newPwd !== confirmPwd) { showToast('Las contraseñas no coinciden.', 'error'); return; }
+    if (!currentPwd || !newPwd || !confirmPwd) { showToast(t('settings.fillAllFields'), 'error'); return; }
+    if (newPwd !== confirmPwd) { showToast(t('settings.pwdNoMatch'), 'error'); return; }
 
     // Validar política de contraseñas
     const reglasFallidas = REGLAS_PWD.filter(r => !r.test(newPwd));
     if (reglasFallidas.length > 0) {
-      showToast(`La contraseña no cumple: ${reglasFallidas[0].label}`, 'error');
+      showToast(t('register.errorPolicy', { rule: t(reglasFallidas[0].labelKey) }), 'error');
       return;
     }
     setSavingPwd(true);
@@ -236,7 +236,7 @@ export default function AjustesPage() {
   };
 
   const handleLogout = () => {
-    if (!confirm('¿Cerrar sesión?')) return;
+    if (!confirm(t('settings.confirmLogout'))) return;
     logout(); window.location.href = '/login';
   };
 
@@ -245,12 +245,12 @@ export default function AjustesPage() {
     if (!newPwd) return null;
     const cumplidas = REGLAS_PWD.filter(r => r.test(newPwd)).length;
     const total     = REGLAS_PWD.length; // 5
-    if (cumplidas === 0) return { label: 'Muy débil',  color: 'bg-red-500',     w: 'w-0' };
-    if (cumplidas === 1) return { label: 'Débil',      color: 'bg-red-400',     w: 'w-1/5' };
-    if (cumplidas === 2) return { label: 'Regular',    color: 'bg-amber-400',   w: 'w-2/5' };
-    if (cumplidas === 3) return { label: 'Buena',      color: 'bg-blue-500',    w: 'w-3/5' };
-    if (cumplidas === 4) return { label: 'Fuerte',     color: 'bg-emerald-400', w: 'w-4/5' };
-    return                      { label: 'Muy fuerte', color: 'bg-emerald-500', w: 'w-full' };
+    if (cumplidas === 0) return { label: t('settings.pwdVeryWeak'),   color: 'bg-red-500',     w: 'w-0' };
+    if (cumplidas === 1) return { label: t('settings.pwdWeak'),        color: 'bg-red-400',     w: 'w-1/5' };
+    if (cumplidas === 2) return { label: t('settings.pwdRegular'),     color: 'bg-amber-400',   w: 'w-2/5' };
+    if (cumplidas === 3) return { label: t('settings.pwdGood'),        color: 'bg-blue-500',    w: 'w-3/5' };
+    if (cumplidas === 4) return { label: t('settings.pwdStrong'),      color: 'bg-emerald-400', w: 'w-4/5' };
+    return                      { label: t('settings.pwdVeryStrong'),  color: 'bg-emerald-500', w: 'w-full' };
   };
   const strength    = pwdStrength();
   const pwdValida   = newPwd.length > 0 && REGLAS_PWD.every(r => r.test(newPwd));
@@ -388,7 +388,7 @@ export default function AjustesPage() {
             <div className="flex items-start gap-2 p-3 rounded-xl bg-amber-50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-900/30">
               <AlertCircle size={14} className="text-amber-500 shrink-0 mt-0.5" />
               <p className="text-xs text-amber-700 dark:text-amber-400">
-                Los emails se enviarán a <strong>{user?.email}</strong>. Para que funcionen los correos, configura las credenciales MAIL_USER y MAIL_PASS en el archivo <code>.env</code> del backend.
+                {t('settings.emailConfigNote', { email: user?.email })}
               </p>
             </div>
           )}
@@ -434,7 +434,7 @@ export default function AjustesPage() {
                       }
                     </span>
                     <span className={cumplida ? 'text-emerald-600 dark:text-emerald-400 font-medium' : 'text-gray-400 dark:text-gray-500'}>
-                      {regla.label}
+                      {t(regla.labelKey)}
                     </span>
                   </li>
                 );
@@ -497,7 +497,7 @@ export default function AjustesPage() {
                 <p className="text-sm font-bold text-red-700 dark:text-red-400">{t('settings.dangerZone')}</p>
                 <p className="text-xs text-red-600 dark:text-red-400 mt-0.5">{t('settings.dangerDesc')}</p>
               </div>
-              <button onClick={() => alert('Para eliminar tu cuenta contacta a soporte@yourcourse.mx')}
+              <button onClick={() => alert(t('settings.deleteContact'))}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-semibold transition-all shrink-0">
                 <Trash2 size={12} /> {t('settings.deleteAccount')}
               </button>

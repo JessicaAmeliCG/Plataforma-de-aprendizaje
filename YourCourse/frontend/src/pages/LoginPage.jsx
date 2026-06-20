@@ -1,21 +1,26 @@
 /**
- * LoginPage.jsx — v2 con autenticación real
+ * LoginPage.jsx — v3
+ * - i18n completo con useT()
+ * - Fix localStorage: yc_dark_mode → yc_tema (unificado con app)
  */
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { GraduationCap, Eye, EyeOff, Moon, Sun, ArrowRight, Loader2 } from 'lucide-react';
 import { api } from '../services/api';
 import useAuthStore from '../stores/authStore';
+import { useT } from '../contexts/I18nContext';
 
 export default function LoginPage() {
+  const t = useT();
+
   const [email,    setEmail]    = useState('');
   const [password, setPassword] = useState('');
   const [showPass, setShowPass] = useState(false);
   const [loading,  setLoading]  = useState(false);
   const [error,    setError]    = useState('');
   const [darkMode, setDarkMode] = useState(
-    () => localStorage.getItem('yc_dark_mode') === 'true' ||
-          window.matchMedia('(prefers-color-scheme: dark)').matches
+    () => localStorage.getItem('yc_tema') === 'dark' ||
+          (!localStorage.getItem('yc_tema') && window.matchMedia('(prefers-color-scheme: dark)').matches)
   );
 
   const setAuth  = useAuthStore(s => s.setAuth);
@@ -23,13 +28,13 @@ export default function LoginPage() {
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', darkMode);
-    localStorage.setItem('yc_dark_mode', String(darkMode));
+    localStorage.setItem('yc_tema', darkMode ? 'dark' : 'light');
   }, [darkMode]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    if (!email || !password) { setError('Completa todos los campos.'); return; }
+    if (!email || !password) { setError(t('login.errorFields')); return; }
 
     try {
       setLoading(true);
@@ -49,6 +54,8 @@ export default function LoginPage() {
     }
   };
 
+  const INPUT = "w-full px-4 py-3 rounded-xl text-sm bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all";
+
   return (
     <div className="min-h-screen flex bg-gray-50 dark:bg-gray-950 transition-colors duration-300">
 
@@ -64,20 +71,23 @@ export default function LoginPage() {
           </div>
         </div>
         <div className="relative z-10">
-          <h2 className="text-4xl font-black text-white leading-tight mb-4">Crea, enseña<br/>y crece.</h2>
+          <h2 className="text-4xl font-black text-white leading-tight mb-4" style={{ whiteSpace: 'pre-line' }}>
+            {t('login.slogan')}
+          </h2>
           <p className="text-primary-200 text-base leading-relaxed">
-            La plataforma e-learning multi-tenant diseñada para creadores que quieren monetizar su conocimiento.
+            {t('login.platformDesc')}
           </p>
           <div className="mt-8 flex gap-4">
-            {['1,240+\nEstudiantes', '8\nCursos', '4.8★\nCalificación'].map(item => {
-              const [val, lab] = item.split('\n');
-              return (
-                <div key={lab} className="bg-white/10 backdrop-blur-sm rounded-2xl px-4 py-3 text-center">
-                  <p className="text-white font-black text-xl">{val}</p>
-                  <p className="text-primary-200 text-xs">{lab}</p>
-                </div>
-              );
-            })}
+            {[
+              ['1,240+', t('login.stat1')],
+              ['8',      t('login.stat2')],
+              ['4.8★',   t('login.stat3')],
+            ].map(([val, lab]) => (
+              <div key={lab} className="bg-white/10 backdrop-blur-sm rounded-2xl px-4 py-3 text-center">
+                <p className="text-white font-black text-xl">{val}</p>
+                <p className="text-primary-200 text-xs">{lab}</p>
+              </div>
+            ))}
           </div>
         </div>
       </div>
@@ -98,30 +108,33 @@ export default function LoginPage() {
           </div>
 
           <div>
-            <h1 className="text-3xl font-black text-gray-900 dark:text-white">Iniciar sesión</h1>
+            <h1 className="text-3xl font-black text-gray-900 dark:text-white">{t('login.title')}</h1>
             <p className="text-gray-500 dark:text-gray-400 mt-2 text-sm">
-              ¿No tienes cuenta?{' '}
+              {t('login.noAccount')}{' '}
               <Link to="/register" className="text-primary-600 dark:text-primary-400 font-semibold hover:underline">
-                Regístrate gratis
+                {t('login.register')}
               </Link>
             </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-1.5">
-              <label htmlFor="email" className="text-sm font-semibold text-gray-700 dark:text-gray-300">Correo electrónico</label>
+              <label htmlFor="email" className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                {t('login.email')}
+              </label>
               <input id="email" type="email" autoComplete="email" value={email} onChange={e => setEmail(e.target.value)}
-                placeholder="tu@email.com"
-                className="w-full px-4 py-3 rounded-xl text-sm bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all"
+                placeholder="tu@email.com" className={INPUT}
               />
             </div>
 
             <div className="space-y-1.5">
-              <label htmlFor="password" className="text-sm font-semibold text-gray-700 dark:text-gray-300">Contraseña</label>
+              <label htmlFor="password" className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                {t('login.password')}
+              </label>
               <div className="relative">
                 <input id="password" type={showPass ? 'text' : 'password'} autoComplete="current-password"
                   value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••"
-                  className="w-full px-4 py-3 pr-11 rounded-xl text-sm bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all"
+                  className={`${INPUT} pr-11`}
                 />
                 <button type="button" onClick={() => setShowPass(p => !p)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
@@ -138,13 +151,13 @@ export default function LoginPage() {
               className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-primary-600 to-primary-600 hover:from-primary-500 hover:to-primary-500 disabled:opacity-60 text-white font-bold text-sm shadow-lg shadow-primary-500/30 transition-all active:scale-95"
             >
               {loading
-                ? <><Loader2 size={17} className="animate-spin" /> Entrando...</>
-                : <>Entrar <ArrowRight size={17} /></>
+                ? <><Loader2 size={17} className="animate-spin" /> {t('login.entering')}</>
+                : <>{t('login.enter')} <ArrowRight size={17} /></>
               }
             </button>
           </form>
 
-          <p className="text-center text-xs text-gray-400 dark:text-gray-600">© 2025 YourCourse · Todos los derechos reservados</p>
+          <p className="text-center text-xs text-gray-400 dark:text-gray-600">{t('login.copyright')}</p>
         </div>
       </div>
     </div>
