@@ -103,7 +103,7 @@ function VideoPlayer({ leccion, onEnded }) {
           onClick={handleSeek}
         >
           <div
-            className="h-1.5 bg-gradient-to-r from-violet-500 to-purple-500 rounded-full relative transition-all"
+            className="h-1.5 bg-gradient-to-r from-primary-500 to-primary-500 rounded-full relative transition-all"
             style={{ width: `${progress}%` }}
           >
             <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3.5 h-3.5 rounded-full bg-white shadow-md opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -112,7 +112,7 @@ function VideoPlayer({ leccion, onEnded }) {
         {/* Botones */}
         <div className="flex items-center gap-3">
           <button onClick={togglePlay}
-            className="w-9 h-9 rounded-xl bg-violet-600 hover:bg-violet-500 flex items-center justify-center text-white transition-all active:scale-95 shadow-lg shadow-violet-500/20">
+            className="w-9 h-9 rounded-xl bg-primary-600 hover:bg-primary-500 flex items-center justify-center text-white transition-all active:scale-95 shadow-lg shadow-primary-500/20">
             {playing ? <Pause size={16} fill="white" /> : <Play size={16} fill="white" />}
           </button>
           <span className="text-xs text-gray-400 font-mono tabular-nums">
@@ -131,7 +131,7 @@ function LeccionItem({ leccion, index, isActive, isCompleted, onClick }) {
       onClick={onClick}
       className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-all ${
         isActive
-          ? 'bg-violet-600 text-white'
+          ? 'bg-primary-600 text-white'
           : 'hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300'
       }`}
     >
@@ -186,22 +186,22 @@ function EjerciciosTab({ ejercicios }) {
             href={ej.archivo_url}
             target="_blank"
             rel="noreferrer"
-            className="flex items-center gap-4 p-4 rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 hover:border-violet-300 dark:hover:border-violet-700 hover:shadow-md transition-all group"
+            className="flex items-center gap-4 p-4 rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 hover:border-primary-300 dark:hover:border-primary-700 hover:shadow-md transition-all group"
           >
             <div className={`w-12 h-12 rounded-xl flex flex-col items-center justify-center shrink-0 font-bold text-[10px] ${color}`}>
               <FileText size={18} />
               <span className="mt-0.5">{ext}</span>
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-gray-900 dark:text-white truncate group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">
+              <p className="text-sm font-semibold text-gray-900 dark:text-white truncate group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
                 {ej.titulo}
               </p>
               {ej.descripcion && <p className="text-xs text-gray-400 mt-0.5 truncate">{ej.descripcion}</p>}
-              <p className="text-[11px] text-violet-500 font-medium mt-1 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              <p className="text-[11px] text-primary-500 font-medium mt-1 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                 <ExternalLink size={10} /> Abrir / Descargar
               </p>
             </div>
-            <Download size={16} className="text-gray-300 dark:text-gray-700 group-hover:text-violet-500 transition-colors shrink-0" />
+            <Download size={16} className="text-gray-300 dark:text-gray-700 group-hover:text-primary-500 transition-colors shrink-0" />
           </a>
         );
       })}
@@ -259,14 +259,14 @@ export default function CursoViewer() {
 
   if (loading) return (
     <div className="flex items-center justify-center h-screen bg-gray-50 dark:bg-gray-950">
-      <Loader2 size={36} className="animate-spin text-violet-500" />
+      <Loader2 size={36} className="animate-spin text-primary-500" />
     </div>
   );
   if (error || !curso) return (
     <div className="flex flex-col items-center justify-center h-screen gap-4">
       <AlertCircle size={40} className="text-red-400" />
       <p className="text-gray-600 dark:text-gray-400">{error || 'Curso no encontrado.'}</p>
-      <button onClick={() => navigate('/creator/cursos')} className="underline text-violet-500 text-sm">Volver</button>
+      <button onClick={() => navigate('/creator/cursos')} className="underline text-primary-500 text-sm">Volver</button>
     </div>
   );
 
@@ -280,7 +280,7 @@ export default function CursoViewer() {
 
         {/* Header sidebar */}
         <div className="p-4 border-b border-gray-100 dark:border-gray-800">
-          <button onClick={() => navigate(`/creator/cursos/${id}`)} className="flex items-center gap-2 text-xs text-gray-400 hover:text-violet-600 dark:hover:text-violet-400 transition-colors mb-3">
+          <button onClick={() => navigate(`/creator/cursos/${id}`)} className="flex items-center gap-2 text-xs text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors mb-3">
             <ArrowLeft size={14} /> Volver a gestión
           </button>
           <h2 className="font-bold text-gray-900 dark:text-white text-sm leading-snug line-clamp-2">{curso.titulo}</h2>
@@ -289,10 +289,10 @@ export default function CursoViewer() {
           <div className="mt-3">
             <div className="flex items-center justify-between text-[11px] text-gray-400 mb-1">
               <span>Progreso</span>
-              <span className="font-semibold text-violet-600 dark:text-violet-400">{progressPct}%</span>
+              <span className="font-semibold text-primary-600 dark:text-primary-400">{progressPct}%</span>
             </div>
             <div className="w-full h-1.5 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
-              <div className="h-1.5 bg-gradient-to-r from-violet-500 to-purple-500 rounded-full transition-all duration-500" style={{ width: `${progressPct}%` }} />
+              <div className="h-1.5 bg-gradient-to-r from-primary-500 to-primary-500 rounded-full transition-all duration-500" style={{ width: `${progressPct}%` }} />
             </div>
           </div>
         </div>
@@ -306,7 +306,7 @@ export default function CursoViewer() {
             <button key={t.key} onClick={() => setSidebarTab(t.key)}
               className={`flex-1 py-2.5 text-xs font-semibold transition-colors ${
                 sidebarTab === t.key
-                  ? 'text-violet-600 dark:text-violet-400 border-b-2 border-violet-500'
+                  ? 'text-primary-600 dark:text-primary-400 border-b-2 border-primary-500'
                   : 'text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
               }`}>
               {t.label}
@@ -364,7 +364,7 @@ export default function CursoViewer() {
               <SkipBack size={13} /> Anterior
             </button>
             <button onClick={handleNext} disabled={activeIdx === lecciones.length - 1}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-violet-600 hover:bg-violet-500 text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-sm shadow-violet-500/20">
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-primary-600 hover:bg-primary-500 text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-sm shadow-primary-500/20">
               Siguiente <SkipForward size={13} />
             </button>
           </div>
@@ -375,15 +375,15 @@ export default function CursoViewer() {
 
           {lecciones.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-64 gap-5 text-center">
-              <div className="w-20 h-20 rounded-3xl bg-violet-100 dark:bg-violet-900/20 flex items-center justify-center">
-                <GraduationCap size={36} className="text-violet-500" />
+              <div className="w-20 h-20 rounded-3xl bg-primary-100 dark:bg-primary-900/20 flex items-center justify-center">
+                <GraduationCap size={36} className="text-primary-500" />
               </div>
               <div>
                 <p className="font-bold text-gray-700 dark:text-gray-300 text-lg">Sin contenido aún</p>
                 <p className="text-sm text-gray-400 mt-1">Este curso no tiene lecciones publicadas.</p>
               </div>
               <button onClick={() => navigate(`/creator/cursos/${id}`)}
-                className="px-5 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white font-semibold text-sm transition-all">
+                className="px-5 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-500 text-white font-semibold text-sm transition-all">
                 Ir a agregar lecciones →
               </button>
             </div>
@@ -397,7 +397,7 @@ export default function CursoViewer() {
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <div className="flex items-center gap-2 mb-2">
-                      <span className="text-xs font-semibold text-violet-500">Lección {activeIdx + 1} de {lecciones.length}</span>
+                      <span className="text-xs font-semibold text-primary-500">Lección {activeIdx + 1} de {lecciones.length}</span>
                       {completed.has(activeLeccion?.id) && (
                         <span className="flex items-center gap-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-900/20 px-2 py-0.5 rounded-full">
                           <Check size={10} /> Completada
@@ -419,13 +419,13 @@ export default function CursoViewer() {
                 {lecciones.length > 1 && (
                   <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between gap-4">
                     {activeIdx > 0 ? (
-                      <button onClick={handlePrev} className="flex items-center gap-2 text-sm text-gray-500 hover:text-violet-600 dark:hover:text-violet-400 transition-colors">
+                      <button onClick={handlePrev} className="flex items-center gap-2 text-sm text-gray-500 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
                         <ChevronUp size={16} />
                         <span className="truncate max-w-[180px]">{lecciones[activeIdx - 1]?.titulo}</span>
                       </button>
                     ) : <div />}
                     {activeIdx < lecciones.length - 1 && (
-                      <button onClick={handleNext} className="flex items-center gap-2 text-sm text-gray-500 hover:text-violet-600 dark:hover:text-violet-400 transition-colors ml-auto">
+                      <button onClick={handleNext} className="flex items-center gap-2 text-sm text-gray-500 hover:text-primary-600 dark:hover:text-primary-400 transition-colors ml-auto">
                         <span className="truncate max-w-[180px]">{lecciones[activeIdx + 1]?.titulo}</span>
                         <ChevronDown size={16} />
                       </button>

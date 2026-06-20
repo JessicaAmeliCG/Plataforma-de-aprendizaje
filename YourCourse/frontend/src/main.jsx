@@ -10,7 +10,9 @@ const isDark = savedTema === 'dark' || (!savedTema && window.matchMedia('(prefer
 if (isDark) document.documentElement.classList.add('dark');
 
 const savedEstilo = localStorage.getItem('yc_estilo');
-if (savedEstilo === 'vibrante') document.documentElement.classList.add('theme-vibrant');
+if (savedEstilo && savedEstilo !== 'profesional') {
+  document.documentElement.classList.add(`theme-${savedEstilo}`);
+}
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

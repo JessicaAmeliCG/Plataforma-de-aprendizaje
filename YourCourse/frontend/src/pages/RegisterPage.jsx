@@ -52,7 +52,7 @@ export default function RegisterPage() {
     }
   };
 
-  const INPUT = "w-full px-4 py-3 rounded-xl text-sm bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-500 transition-all";
+  const INPUT = "w-full px-4 py-3 rounded-xl text-sm bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all";
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950 px-4 transition-colors duration-300">
@@ -66,13 +66,13 @@ export default function RegisterPage() {
       <div className="w-full max-w-md space-y-8 animate-fade-in-up">
         <div className="text-center">
           <div className="flex items-center justify-center gap-2 mb-4">
-            <GraduationCap className="text-violet-600" size={32} />
+            <GraduationCap className="text-primary-600" size={32} />
             <span className="font-bold text-gray-900 dark:text-white text-2xl">YourCourse</span>
           </div>
           <h1 className="text-3xl font-black text-gray-900 dark:text-white">Crear cuenta</h1>
           <p className="text-gray-500 dark:text-gray-400 mt-2 text-sm">
             ¿Ya tienes cuenta?{' '}
-            <Link to="/login" className="text-violet-600 dark:text-violet-400 font-semibold hover:underline">
+            <Link to="/login" className="text-primary-600 dark:text-primary-400 font-semibold hover:underline">
               Inicia sesión
             </Link>
           </p>
@@ -115,7 +115,7 @@ export default function RegisterPage() {
             )}
 
             <button id="btn-register" type="submit" disabled={loading}
-              className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 disabled:opacity-60 text-white font-bold text-sm shadow-lg shadow-violet-500/30 transition-all active:scale-95 mt-2"
+              className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-primary-600 to-primary-600 hover:from-primary-500 hover:to-primary-500 disabled:opacity-60 text-white font-bold text-sm shadow-lg shadow-primary-500/30 transition-all active:scale-95 mt-2"
             >
               {loading
                 ? <><Loader2 size={17} className="animate-spin" /> Creando cuenta...</>

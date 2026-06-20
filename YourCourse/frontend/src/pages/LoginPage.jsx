@@ -53,7 +53,7 @@ export default function LoginPage() {
     <div className="min-h-screen flex bg-gray-50 dark:bg-gray-950 transition-colors duration-300">
 
       {/* Panel izquierdo */}
-      <div className="hidden lg:flex lg:w-1/2 relative bg-gradient-to-br from-violet-700 via-purple-700 to-indigo-800 flex-col justify-between p-12 overflow-hidden">
+      <div className="hidden lg:flex lg:w-1/2 relative bg-gradient-to-br from-primary-700 via-primary-700 to-indigo-800 flex-col justify-between p-12 overflow-hidden">
         <div className="absolute inset-0 opacity-20"
           style={{ backgroundImage: 'radial-gradient(circle at 25% 25%, white 1px, transparent 1px), radial-gradient(circle at 75% 75%, white 1px, transparent 1px)', backgroundSize: '40px 40px' }}
         />
@@ -65,7 +65,7 @@ export default function LoginPage() {
         </div>
         <div className="relative z-10">
           <h2 className="text-4xl font-black text-white leading-tight mb-4">Crea, enseña<br/>y crece.</h2>
-          <p className="text-violet-200 text-base leading-relaxed">
+          <p className="text-primary-200 text-base leading-relaxed">
             La plataforma e-learning multi-tenant diseñada para creadores que quieren monetizar su conocimiento.
           </p>
           <div className="mt-8 flex gap-4">
@@ -74,7 +74,7 @@ export default function LoginPage() {
               return (
                 <div key={lab} className="bg-white/10 backdrop-blur-sm rounded-2xl px-4 py-3 text-center">
                   <p className="text-white font-black text-xl">{val}</p>
-                  <p className="text-violet-200 text-xs">{lab}</p>
+                  <p className="text-primary-200 text-xs">{lab}</p>
                 </div>
               );
             })}
@@ -93,7 +93,7 @@ export default function LoginPage() {
 
         <div className="max-w-sm w-full mx-auto space-y-8 animate-fade-in-up">
           <div className="lg:hidden flex items-center gap-2">
-            <GraduationCap className="text-violet-600" size={28} />
+            <GraduationCap className="text-primary-600" size={28} />
             <span className="font-bold text-gray-900 dark:text-white text-xl">YourCourse</span>
           </div>
 
@@ -101,7 +101,7 @@ export default function LoginPage() {
             <h1 className="text-3xl font-black text-gray-900 dark:text-white">Iniciar sesión</h1>
             <p className="text-gray-500 dark:text-gray-400 mt-2 text-sm">
               ¿No tienes cuenta?{' '}
-              <Link to="/register" className="text-violet-600 dark:text-violet-400 font-semibold hover:underline">
+              <Link to="/register" className="text-primary-600 dark:text-primary-400 font-semibold hover:underline">
                 Regístrate gratis
               </Link>
             </p>
@@ -112,7 +112,7 @@ export default function LoginPage() {
               <label htmlFor="email" className="text-sm font-semibold text-gray-700 dark:text-gray-300">Correo electrónico</label>
               <input id="email" type="email" autoComplete="email" value={email} onChange={e => setEmail(e.target.value)}
                 placeholder="tu@email.com"
-                className="w-full px-4 py-3 rounded-xl text-sm bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-500 transition-all"
+                className="w-full px-4 py-3 rounded-xl text-sm bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all"
               />
             </div>
 
@@ -121,7 +121,7 @@ export default function LoginPage() {
               <div className="relative">
                 <input id="password" type={showPass ? 'text' : 'password'} autoComplete="current-password"
                   value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••"
-                  className="w-full px-4 py-3 pr-11 rounded-xl text-sm bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-500 transition-all"
+                  className="w-full px-4 py-3 pr-11 rounded-xl text-sm bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all"
                 />
                 <button type="button" onClick={() => setShowPass(p => !p)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
@@ -135,7 +135,7 @@ export default function LoginPage() {
             )}
 
             <button id="btn-login" type="submit" disabled={loading}
-              className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 disabled:opacity-60 text-white font-bold text-sm shadow-lg shadow-violet-500/30 transition-all active:scale-95"
+              className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-primary-600 to-primary-600 hover:from-primary-500 hover:to-primary-500 disabled:opacity-60 text-white font-bold text-sm shadow-lg shadow-primary-500/30 transition-all active:scale-95"
             >
               {loading
                 ? <><Loader2 size={17} className="animate-spin" /> Entrando...</>

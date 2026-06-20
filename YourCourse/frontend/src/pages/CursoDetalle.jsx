@@ -15,7 +15,7 @@ function ProgressBar({ progress }) {
   return (
     <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
       <div
-        className="h-2 bg-gradient-to-r from-violet-500 to-purple-600 rounded-full transition-all duration-300"
+        className="h-2 bg-gradient-to-r from-primary-500 to-primary-600 rounded-full transition-all duration-300"
         style={{ width: `${progress}%` }}
       />
     </div>
@@ -63,18 +63,18 @@ function LeccionRow({ leccion, index, total, onMoveUp, onMoveDown, onDelete, onR
   return (
     <div className={`group flex items-start gap-3 p-4 rounded-2xl border transition-all duration-200 ${
       isActive
-        ? 'border-violet-400 dark:border-violet-600 bg-violet-50 dark:bg-violet-900/10 shadow-md'
+        ? 'border-primary-400 dark:border-primary-600 bg-primary-50 dark:bg-primary-900/10 shadow-md'
         : 'border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 hover:border-gray-300 dark:hover:border-gray-700 hover:shadow-sm'
     }`}>
       <div className="flex flex-col items-center gap-1 shrink-0 pt-0.5">
         <span className="w-7 h-7 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-xs font-bold text-gray-500 dark:text-gray-400">{index + 1}</span>
-        <button onClick={onMoveUp} disabled={index === 0} className="w-6 h-6 rounded-lg flex items-center justify-center text-gray-400 hover:text-violet-600 hover:bg-violet-100 dark:hover:bg-violet-900/20 disabled:opacity-20 disabled:cursor-not-allowed transition-all"><ChevronUp size={14} /></button>
-        <button onClick={onMoveDown} disabled={index === total - 1} className="w-6 h-6 rounded-lg flex items-center justify-center text-gray-400 hover:text-violet-600 hover:bg-violet-100 dark:hover:bg-violet-900/20 disabled:opacity-20 disabled:cursor-not-allowed transition-all"><ChevronDown size={14} /></button>
+        <button onClick={onMoveUp} disabled={index === 0} className="w-6 h-6 rounded-lg flex items-center justify-center text-gray-400 hover:text-primary-600 hover:bg-primary-100 dark:hover:bg-primary-900/20 disabled:opacity-20 disabled:cursor-not-allowed transition-all"><ChevronUp size={14} /></button>
+        <button onClick={onMoveDown} disabled={index === total - 1} className="w-6 h-6 rounded-lg flex items-center justify-center text-gray-400 hover:text-primary-600 hover:bg-primary-100 dark:hover:bg-primary-900/20 disabled:opacity-20 disabled:cursor-not-allowed transition-all"><ChevronDown size={14} /></button>
       </div>
 
       <button onClick={() => hasVideo && onPreview(leccion.video_url)} disabled={!hasVideo}
         className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 transition-all ${
-          hasVideo ? 'bg-gradient-to-br from-violet-500 to-purple-700 text-white shadow-sm hover:shadow-violet-500/30 hover:scale-105 cursor-pointer' : 'bg-gray-100 dark:bg-gray-800 text-gray-300 dark:text-gray-600 cursor-default'
+          hasVideo ? 'bg-gradient-to-br from-primary-500 to-primary-700 text-white shadow-sm hover:shadow-primary-500/30 hover:scale-105 cursor-pointer' : 'bg-gray-100 dark:bg-gray-800 text-gray-300 dark:text-gray-600 cursor-default'
         }`}>
         {hasVideo ? <Play size={18} fill="white" /> : <Film size={18} />}
       </button>
@@ -83,14 +83,14 @@ function LeccionRow({ leccion, index, total, onMoveUp, onMoveDown, onDelete, onR
         {editando ? (
           <div className="flex items-center gap-2">
             <input autoFocus value={nuevoTitulo} onChange={e => setNuevoTitulo(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') handleSave(); if (e.key === 'Escape') { setEditando(false); setNuevoTitulo(leccion.titulo); } }}
-              className="flex-1 text-sm font-medium bg-white dark:bg-gray-800 border border-violet-400 rounded-lg px-3 py-1.5 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500" maxLength={120} />
+              className="flex-1 text-sm font-medium bg-white dark:bg-gray-800 border border-primary-400 rounded-lg px-3 py-1.5 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500" maxLength={120} />
             <button onClick={handleSave} disabled={guardando} className="p-1.5 rounded-lg text-emerald-600 hover:bg-emerald-100 dark:hover:bg-emerald-900/20 transition-colors">{guardando ? <Loader2 size={15} className="animate-spin" /> : <Check size={15} />}</button>
             <button onClick={() => { setEditando(false); setNuevoTitulo(leccion.titulo); }} className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"><X size={15} /></button>
           </div>
         ) : (
           <div className="flex items-center gap-2">
             <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">{leccion.titulo}</p>
-            <button onClick={() => setEditando(true)} title="Renombrar" className="opacity-0 group-hover:opacity-100 p-1 rounded-lg text-gray-400 hover:text-violet-600 hover:bg-violet-100 dark:hover:bg-violet-900/20 transition-all"><Edit3 size={13} /></button>
+            <button onClick={() => setEditando(true)} title="Renombrar" className="opacity-0 group-hover:opacity-100 p-1 rounded-lg text-gray-400 hover:text-primary-600 hover:bg-primary-100 dark:hover:bg-primary-900/20 transition-all"><Edit3 size={13} /></button>
           </div>
         )}
         <div className="flex items-center gap-2 mt-1">
@@ -136,22 +136,22 @@ function VideoUploadZone({ cursoId, onSuccess }) {
       <div>
         <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Título <span className="text-red-400">*</span></label>
         <input type="text" value={titulo} onChange={e => setTitulo(e.target.value)} placeholder="ej. Introducción al tema" maxLength={120}
-          className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-500 transition" />
+          className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 transition" />
       </div>
       <div onDrop={e => { e.preventDefault(); handleFile(e.dataTransfer.files[0]); }} onDragOver={e => e.preventDefault()}
         onClick={() => fileRef.current?.click()}
-        className={`border-2 border-dashed rounded-2xl p-6 text-center cursor-pointer transition-all ${archivo ? 'border-violet-400 bg-violet-50 dark:bg-violet-900/10' : 'border-gray-200 dark:border-gray-700 hover:border-violet-400 hover:bg-violet-50/50 dark:hover:bg-violet-900/10'}`}>
+        className={`border-2 border-dashed rounded-2xl p-6 text-center cursor-pointer transition-all ${archivo ? 'border-primary-400 bg-primary-50 dark:bg-primary-900/10' : 'border-gray-200 dark:border-gray-700 hover:border-primary-400 hover:bg-primary-50/50 dark:hover:bg-primary-900/10'}`}>
         <input ref={fileRef} type="file" accept="video/*" className="hidden" onChange={e => e.target.files[0] && handleFile(e.target.files[0])} />
         {archivo ? (
           <div className="flex flex-col items-center gap-2">
-            <Film size={24} className="text-violet-500" />
+            <Film size={24} className="text-primary-500" />
             <p className="text-sm font-semibold text-gray-900 dark:text-white truncate max-w-xs">{archivo.name}</p>
             <p className="text-xs text-gray-400">{(archivo.size / (1024 * 1024)).toFixed(1)} MB · clic para cambiar</p>
           </div>
         ) : (
           <div className="flex flex-col items-center gap-2">
             <Upload size={22} className="text-gray-400" />
-            <p className="text-sm text-gray-600 dark:text-gray-400">Arrastra o <span className="text-violet-500 font-semibold">selecciona un video</span></p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">Arrastra o <span className="text-primary-500 font-semibold">selecciona un video</span></p>
             <p className="text-xs text-gray-400">MP4, WebM, MOV, MKV · Máx. 2 GB</p>
           </div>
         )}
@@ -163,7 +163,7 @@ function VideoUploadZone({ cursoId, onSuccess }) {
         </div>
       )}
       {error && <p className="text-sm text-red-500 flex items-center gap-1.5"><AlertCircle size={14} />{error}</p>}
-      <button type="submit" disabled={uploading} className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 disabled:opacity-60 text-white font-semibold text-sm shadow-lg shadow-violet-500/25 transition-all active:scale-95">
+      <button type="submit" disabled={uploading} className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-gradient-to-r from-primary-600 to-primary-600 hover:from-primary-500 hover:to-primary-500 disabled:opacity-60 text-white font-semibold text-sm shadow-lg shadow-primary-500/25 transition-all active:scale-95">
         {uploading ? <><Loader2 size={16} className="animate-spin" /> Subiendo... {progress}%</> : <><Plus size={16} /> Agregar lección</>}
       </button>
     </form>
@@ -211,14 +211,14 @@ function EjercicioRow({ ejercicio, index, onDelete, onRename }) {
         {editando ? (
           <div className="flex items-center gap-2">
             <input autoFocus value={nuevoTitulo} onChange={e => setNuevoTitulo(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') handleSave(); if (e.key === 'Escape') { setEditando(false); setNuevoTitulo(ejercicio.titulo); } }}
-              className="flex-1 text-sm font-medium bg-white dark:bg-gray-800 border border-violet-400 rounded-lg px-3 py-1.5 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500" />
+              className="flex-1 text-sm font-medium bg-white dark:bg-gray-800 border border-primary-400 rounded-lg px-3 py-1.5 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500" />
             <button onClick={handleSave} disabled={guardando} className="p-1.5 rounded-lg text-emerald-600 hover:bg-emerald-100 dark:hover:bg-emerald-900/20">{guardando ? <Loader2 size={15} className="animate-spin" /> : <Check size={15} />}</button>
             <button onClick={() => { setEditando(false); setNuevoTitulo(ejercicio.titulo); }} className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"><X size={15} /></button>
           </div>
         ) : (
           <div className="flex items-center gap-2">
             <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">{ejercicio.titulo}</p>
-            <button onClick={() => setEditando(true)} className="opacity-0 group-hover:opacity-100 p-1 rounded-lg text-gray-400 hover:text-violet-600 hover:bg-violet-100 dark:hover:bg-violet-900/20 transition-all"><Edit3 size={13} /></button>
+            <button onClick={() => setEditando(true)} className="opacity-0 group-hover:opacity-100 p-1 rounded-lg text-gray-400 hover:text-primary-600 hover:bg-primary-100 dark:hover:bg-primary-900/20 transition-all"><Edit3 size={13} /></button>
           </div>
         )}
         {ejercicio.descripcion && <p className="text-xs text-gray-400 mt-0.5 truncate">{ejercicio.descripcion}</p>}
@@ -229,7 +229,7 @@ function EjercicioRow({ ejercicio, index, onDelete, onRename }) {
       <div className="flex items-center gap-1 shrink-0">
         {ejercicio.archivo_url && (
           <a href={ejercicio.archivo_url} target="_blank" rel="noreferrer"
-            className="p-2 rounded-xl text-violet-500 hover:bg-violet-100 dark:hover:bg-violet-900/20 transition-colors" title="Ver / Descargar">
+            className="p-2 rounded-xl text-primary-500 hover:bg-primary-100 dark:hover:bg-primary-900/20 transition-colors" title="Ver / Descargar">
             <Eye size={16} />
           </a>
         )}
@@ -273,12 +273,12 @@ function PdfUploadZone({ cursoId, onSuccess }) {
       <div>
         <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Título <span className="text-red-400">*</span></label>
         <input type="text" value={titulo} onChange={e => setTitulo(e.target.value)} placeholder="ej. Ejercicio 1 — Algoritmos básicos" maxLength={120}
-          className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-500 transition" />
+          className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 transition" />
       </div>
       <div>
         <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Descripción <span className="text-gray-400 font-normal">(opcional)</span></label>
         <input type="text" value={descripcion} onChange={e => setDescripcion(e.target.value)} placeholder="Breve descripción del ejercicio" maxLength={200}
-          className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-500 transition" />
+          className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 transition" />
       </div>
       <div onDrop={e => { e.preventDefault(); handleFile(e.dataTransfer.files[0]); }} onDragOver={e => e.preventDefault()}
         onClick={() => fileRef.current?.click()}
@@ -396,12 +396,12 @@ export default function CursoDetalle() {
     } catch (err) { alert(err.message); }
   };
 
-  if (loading) return <div className="flex items-center justify-center h-64"><Loader2 size={32} className="animate-spin text-violet-500" /></div>;
+  if (loading) return <div className="flex items-center justify-center h-64"><Loader2 size={32} className="animate-spin text-primary-500" /></div>;
   if (error || !curso) return (
     <div className="flex flex-col items-center justify-center h-64 gap-4">
       <AlertCircle size={40} className="text-red-400" />
       <p className="text-gray-600 dark:text-gray-400">{error || 'Curso no encontrado.'}</p>
-      <button onClick={() => navigate('/creator/cursos')} className="underline text-violet-500 text-sm">Volver</button>
+      <button onClick={() => navigate('/creator/cursos')} className="underline text-primary-500 text-sm">Volver</button>
     </div>
   );
 
@@ -424,7 +424,7 @@ export default function CursoDetalle() {
       </div>
 
       {/* Card del curso */}
-      <div className={`relative overflow-hidden rounded-2xl bg-gradient-to-br ${curso.gradient_class || 'from-violet-600 to-indigo-700'} p-6 text-white shadow-lg`}>
+      <div className={`relative overflow-hidden rounded-2xl bg-gradient-to-br ${curso.gradient_class || 'from-primary-600 to-indigo-700'} p-6 text-white shadow-lg`}>
         <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 20% 80%, white 1px, transparent 1px)', backgroundSize: '25px 25px' }} />
         <div className="relative flex flex-wrap items-start justify-between gap-4">
           <div>
@@ -458,9 +458,9 @@ export default function CursoDetalle() {
           <div className="xl:col-span-3 space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-base font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                <Video size={18} className="text-violet-500" /> Lecciones
+                <Video size={18} className="text-primary-500" /> Lecciones
                 <span className="text-sm font-normal text-gray-400">({lecciones.length})</span>
-                {reordering && <Loader2 size={14} className="animate-spin text-violet-400 ml-1" />}
+                {reordering && <Loader2 size={14} className="animate-spin text-primary-400 ml-1" />}
               </h3>
             </div>
             {lecciones.length === 0 ? (
@@ -484,14 +484,14 @@ export default function CursoDetalle() {
           <div className="xl:col-span-2 space-y-4">
             {previewUrl && (
               <div className="space-y-2">
-                <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-1.5"><Play size={14} className="text-violet-500" /> Previsualización</h4>
+                <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-1.5"><Play size={14} className="text-primary-500" /> Previsualización</h4>
                 <VideoPlayer src={previewUrl} />
                 <button onClick={() => setPreviewUrl(null)} className="w-full py-2 text-xs text-gray-400 hover:text-gray-600 transition-colors">Cerrar</button>
               </div>
             )}
             <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl overflow-hidden">
               <button onClick={() => setPanelOpen(p => !p)} className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
-                <span className="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-2"><Plus size={17} className="text-violet-500" /> Agregar nueva lección</span>
+                <span className="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-2"><Plus size={17} className="text-primary-500" /> Agregar nueva lección</span>
                 <span className={`text-gray-400 text-xs transition-transform duration-200 ${panelOpen ? 'rotate-180' : ''}`}>▼</span>
               </button>
               {panelOpen && (
@@ -500,9 +500,9 @@ export default function CursoDetalle() {
                 </div>
               )}
             </div>
-            <div className="bg-violet-50 dark:bg-violet-900/10 border border-violet-200 dark:border-violet-800 rounded-2xl p-4">
-              <p className="text-xs font-semibold text-violet-700 dark:text-violet-400 mb-1">💡 Tip</p>
-              <p className="text-xs text-violet-600 dark:text-violet-300 leading-relaxed">Usa <strong>▲ ▼</strong> para reordenar. Haz clic en el ▶ para previsualizar. Los cambios se guardan automáticamente.</p>
+            <div className="bg-primary-50 dark:bg-primary-900/10 border border-primary-200 dark:border-primary-800 rounded-2xl p-4">
+              <p className="text-xs font-semibold text-primary-700 dark:text-primary-400 mb-1">💡 Tip</p>
+              <p className="text-xs text-primary-600 dark:text-primary-300 leading-relaxed">Usa <strong>▲ ▼</strong> para reordenar. Haz clic en el ▶ para previsualizar. Los cambios se guardan automáticamente.</p>
             </div>
           </div>
         </div>

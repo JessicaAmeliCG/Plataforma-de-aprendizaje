@@ -16,7 +16,7 @@ const TIPO_CONFIG = {
   nuevo_estudiante: { Icon: Users,        color: 'text-emerald-500 bg-emerald-100 dark:bg-emerald-900/20' },
   nueva_resena:     { Icon: Star,         color: 'text-amber-500  bg-amber-100  dark:bg-amber-900/20'  },
   nuevo_post:       { Icon: MessageSquare,color: 'text-blue-500   bg-blue-100   dark:bg-blue-900/20'   },
-  nueva_respuesta:  { Icon: Reply,        color: 'text-violet-500 bg-violet-100 dark:bg-violet-900/20' },
+  nueva_respuesta:  { Icon: Reply,        color: 'text-primary-500 bg-primary-100 dark:bg-primary-900/20' },
   info:             { Icon: Info,         color: 'text-gray-500   bg-gray-100   dark:bg-gray-800'       },
 };
 
@@ -129,7 +129,7 @@ export default function NotificationBell() {
       >
         <Bell size={20} />
         {count > 0 && (
-          <span className="absolute top-1 right-1 min-w-[16px] h-4 px-0.5 rounded-full bg-violet-500 text-white text-[9px] font-bold flex items-center justify-center animate-pulse">
+          <span className="absolute top-1 right-1 min-w-[16px] h-4 px-0.5 rounded-full bg-primary-500 text-white text-[9px] font-bold flex items-center justify-center animate-pulse">
             {count > 99 ? '99+' : count}
           </span>
         )}
@@ -142,12 +142,12 @@ export default function NotificationBell() {
           {/* Header del dropdown */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/30">
             <h3 className="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-2">
-              <Bell size={14} className="text-violet-500" />
+              <Bell size={14} className="text-primary-500" />
               {t('notif.title')}
-              {count > 0 && <span className="bg-violet-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">{count}</span>}
+              {count > 0 && <span className="bg-primary-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">{count}</span>}
             </h3>
             {notifs.some(n => !n.leida) && (
-              <button onClick={handleMarkAll} className="text-[11px] text-violet-500 hover:text-violet-700 dark:hover:text-violet-300 font-semibold transition-colors">
+              <button onClick={handleMarkAll} className="text-[11px] text-primary-500 hover:text-primary-700 dark:hover:text-primary-300 font-semibold transition-colors">
                 {t('notif.markAll')}
               </button>
             )}
@@ -157,7 +157,7 @@ export default function NotificationBell() {
           <div className="max-h-96 overflow-y-auto">
             {loading ? (
               <div className="flex items-center justify-center py-10">
-                <Loader2 size={20} className="animate-spin text-violet-400" />
+                <Loader2 size={20} className="animate-spin text-primary-400" />
               </div>
             ) : notifs.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-10 gap-3 text-center px-4">
@@ -176,7 +176,7 @@ export default function NotificationBell() {
                     <div
                       key={n.id}
                       onClick={() => handleClick(n)}
-                      className={`flex items-start gap-3 px-4 py-3 cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/50 ${!n.leida ? 'bg-violet-50/40 dark:bg-violet-900/10' : ''}`}
+                      className={`flex items-start gap-3 px-4 py-3 cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/50 ${!n.leida ? 'bg-primary-50/40 dark:bg-primary-900/10' : ''}`}
                     >
                       {/* Ícono */}
                       <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${cfg.color}`}>
@@ -192,7 +192,7 @@ export default function NotificationBell() {
                       </div>
                       {/* Indicador no leída + eliminar */}
                       <div className="flex flex-col items-end gap-1.5 shrink-0">
-                        {!n.leida && <span className="w-2 h-2 rounded-full bg-violet-500" />}
+                        {!n.leida && <span className="w-2 h-2 rounded-full bg-primary-500" />}
                         <button
                           onClick={(e) => handleDelete(e, n.id)}
                           className="p-0.5 rounded-md text-gray-300 hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
@@ -212,7 +212,7 @@ export default function NotificationBell() {
             <div className="px-4 py-2.5 border-t border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/20">
               <button
                 onClick={() => { navigate('/creator/ajustes'); setOpen(false); }}
-                className="text-xs text-gray-400 hover:text-violet-500 dark:hover:text-violet-400 transition-colors w-full text-center"
+                className="text-xs text-gray-400 hover:text-primary-500 dark:hover:text-primary-400 transition-colors w-full text-center"
               >
                 Ir a Ajustes de notificaciones →
               </button>

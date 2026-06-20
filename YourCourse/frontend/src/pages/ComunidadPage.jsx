@@ -56,13 +56,13 @@ function Stars({ rating, interactive = false, onChange }) {
 function AutorAvatar({ nombre, avatarColor, rol }) {
   return (
     <div className="flex items-center gap-2.5 shrink-0">
-      <div className={`w-9 h-9 rounded-xl bg-gradient-to-br ${avatarColor || 'from-violet-500 to-purple-700'} flex items-center justify-center text-white font-bold text-xs shrink-0`}>
+      <div className={`w-9 h-9 rounded-xl bg-gradient-to-br ${avatarColor || 'from-primary-500 to-primary-700'} flex items-center justify-center text-white font-bold text-xs shrink-0`}>
         {getInitials(nombre)}
       </div>
       <div>
         <p className="text-sm font-semibold text-gray-900 dark:text-white leading-tight">{nombre}</p>
         {rol === 'creador' && (
-          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-violet-100 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400">Creador</span>
+          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400">Creador</span>
         )}
       </div>
     </div>
@@ -108,23 +108,23 @@ function ResenaCard({ post, onDelete, onReply, currentUser }) {
       {/* Respuestas */}
       <div className="border-t border-gray-100 dark:border-gray-800 pt-3 space-y-3">
         {post.respuestas.length > 0 && (
-          <button onClick={() => setRepliesOpen(p => !p)} className="flex items-center gap-1.5 text-xs font-semibold text-gray-500 hover:text-violet-600 dark:hover:text-violet-400 transition-colors">
+          <button onClick={() => setRepliesOpen(p => !p)} className="flex items-center gap-1.5 text-xs font-semibold text-gray-500 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
             <MessageSquare size={13} /> {post.respuestas.length} respuesta{post.respuestas.length !== 1 ? 's' : ''}
             {repliesOpen ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
           </button>
         )}
 
         {repliesOpen && post.respuestas.length > 0 && (
-          <div className="space-y-3 pl-4 border-l-2 border-violet-200 dark:border-violet-800">
+          <div className="space-y-3 pl-4 border-l-2 border-primary-200 dark:border-primary-800">
             {post.respuestas.map(r => (
               <div key={r.id} className="flex items-start gap-2.5">
-                <div className={`w-7 h-7 rounded-lg bg-gradient-to-br ${r.autor_color || 'from-violet-500 to-purple-700'} flex items-center justify-center text-white font-bold text-[10px] shrink-0`}>
+                <div className={`w-7 h-7 rounded-lg bg-gradient-to-br ${r.autor_color || 'from-primary-500 to-primary-700'} flex items-center justify-center text-white font-bold text-[10px] shrink-0`}>
                   {getInitials(r.autor_nombre)}
                 </div>
                 <div className="flex-1 bg-gray-50 dark:bg-gray-800 rounded-xl px-3 py-2">
                   <div className="flex items-center gap-2 mb-1">
                     <span className="text-xs font-semibold text-gray-900 dark:text-white">{r.autor_nombre}</span>
-                    {r.autor_rol === 'creador' && <span className="text-[9px] font-bold px-1 py-0.5 rounded-full bg-violet-100 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400">Creador</span>}
+                    {r.autor_rol === 'creador' && <span className="text-[9px] font-bold px-1 py-0.5 rounded-full bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400">Creador</span>}
                     <span className="text-[11px] text-gray-400 ml-auto">{timeAgo(r.created_at)}</span>
                   </div>
                   <p className="text-xs text-gray-600 dark:text-gray-300">{r.contenido}</p>
@@ -141,10 +141,10 @@ function ResenaCard({ post, onDelete, onReply, currentUser }) {
             onChange={e => setReplyText(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && !e.shiftKey && handleReply()}
             placeholder="Responder..."
-            className="flex-1 text-xs px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-500 transition"
+            className="flex-1 text-xs px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 transition"
           />
           <button onClick={handleReply} disabled={sending || !replyText.trim()}
-            className="p-2 rounded-xl bg-violet-600 hover:bg-violet-500 disabled:opacity-40 text-white transition-all active:scale-95">
+            className="p-2 rounded-xl bg-primary-600 hover:bg-primary-500 disabled:opacity-40 text-white transition-all active:scale-95">
             {sending ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
           </button>
         </div>
@@ -200,7 +200,7 @@ function ForoCard({ post, onDelete, onReply, currentUser }) {
 
       {/* Curso vinculado */}
       {post.curso_titulo && (
-        <div className="flex items-center gap-2 text-xs text-violet-600 dark:text-violet-400 font-medium">
+        <div className="flex items-center gap-2 text-xs text-primary-600 dark:text-primary-400 font-medium">
           <BookOpen size={13} /><span>Relacionado con: {post.curso_titulo}</span>
         </div>
       )}
@@ -218,11 +218,11 @@ function ForoCard({ post, onDelete, onReply, currentUser }) {
           <div className="space-y-3 pl-4 border-l-2 border-indigo-200 dark:border-indigo-800">
             {post.respuestas.map(r => (
               <div key={r.id} className="flex items-start gap-2.5">
-                <div className={`w-7 h-7 rounded-lg bg-gradient-to-br ${r.autor_color || 'from-violet-500 to-purple-700'} flex items-center justify-center text-white font-bold text-[10px] shrink-0`}>{getInitials(r.autor_nombre)}</div>
+                <div className={`w-7 h-7 rounded-lg bg-gradient-to-br ${r.autor_color || 'from-primary-500 to-primary-700'} flex items-center justify-center text-white font-bold text-[10px] shrink-0`}>{getInitials(r.autor_nombre)}</div>
                 <div className="flex-1 bg-gray-50 dark:bg-gray-800 rounded-xl px-3 py-2">
                   <div className="flex items-center gap-2 mb-1">
                     <span className="text-xs font-semibold text-gray-900 dark:text-white">{r.autor_nombre}</span>
-                    {r.autor_rol === 'creador' && <span className="text-[9px] font-bold px-1 py-0.5 rounded-full bg-violet-100 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400">Creador</span>}
+                    {r.autor_rol === 'creador' && <span className="text-[9px] font-bold px-1 py-0.5 rounded-full bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400">Creador</span>}
                     <span className="text-[11px] text-gray-400 ml-auto">{timeAgo(r.created_at)}</span>
                   </div>
                   <p className="text-xs text-gray-600 dark:text-gray-300">{r.contenido}</p>
@@ -317,7 +317,7 @@ function NuevaRecomendacionForm({ onSuccess }) {
         className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition" />
       {error && <p className="text-xs text-red-500 flex items-center gap-1"><AlertCircle size={12} />{error}</p>}
       <button type="submit" disabled={sending || !titulo.trim() || !contenido.trim()}
-        className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 disabled:opacity-50 text-white font-semibold text-sm shadow-lg shadow-indigo-500/20 transition-all active:scale-95">
+        className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-primary-600 hover:from-indigo-500 hover:to-primary-500 disabled:opacity-50 text-white font-semibold text-sm shadow-lg shadow-indigo-500/20 transition-all active:scale-95">
         {sending ? <Loader2 size={15} className="animate-spin" /> : <Send size={15} />} Publicar
       </button>
     </form>
@@ -383,7 +383,7 @@ export default function ComunidadPage() {
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Reseñas de la plataforma y foro de recomendaciones entre estudiantes.</p>
         </div>
         <button onClick={() => setShowForm(p => !p)}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-semibold text-sm shadow-lg shadow-indigo-500/25 transition-all active:scale-95 whitespace-nowrap">
+          className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-primary-600 hover:from-indigo-500 hover:to-primary-500 text-white font-semibold text-sm shadow-lg shadow-indigo-500/25 transition-all active:scale-95 whitespace-nowrap">
           <Plus size={17} /> {showForm ? 'Cancelar' : 'Nueva publicación'}
         </button>
       </div>

@@ -14,7 +14,7 @@ import { useI18n, useT } from '../contexts/I18nContext';
 
 // ─── Constantes ───────────────────────────────────────────────────────────────
 const AVATAR_COLORS = [
-  { value: 'from-violet-500 to-purple-700',  label: 'Violeta'   },
+  { value: 'from-primary-500 to-primary-700',  label: 'Tema Principal'   },
   { value: 'from-blue-500 to-cyan-600',      label: 'Azul'      },
   { value: 'from-emerald-500 to-teal-600',   label: 'Verde'     },
   { value: 'from-rose-500 to-pink-600',      label: 'Rosa'      },
@@ -77,14 +77,14 @@ function Input({ value, onChange, type = 'text', placeholder, maxLength, disable
   return (
     <input type={type} value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder}
       maxLength={maxLength} disabled={disabled}
-      className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-500 transition disabled:opacity-50 disabled:cursor-not-allowed" />
+      className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 transition disabled:opacity-50 disabled:cursor-not-allowed" />
   );
 }
 
 function SaveButton({ loading, disabled, label, onClick }) {
   return (
     <button onClick={onClick} disabled={loading || disabled}
-      className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 disabled:opacity-50 text-white font-semibold text-sm shadow-lg shadow-violet-500/20 transition-all active:scale-95">
+      className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-primary-600 to-primary-600 hover:from-primary-500 hover:to-primary-500 disabled:opacity-50 text-white font-semibold text-sm shadow-lg shadow-primary-500/20 transition-all active:scale-95">
       {loading ? <Loader2 size={15} className="animate-spin" /> : <Check size={15} />}
       {loading ? '...' : label}
     </button>
@@ -95,7 +95,7 @@ function SaveButton({ loading, disabled, label, onClick }) {
 function Toggle({ value, onChange }) {
   return (
     <button onClick={() => onChange(!value)}
-      className={`w-12 h-6 rounded-full relative shrink-0 transition-all duration-300 ${value ? 'bg-violet-600' : 'bg-gray-200 dark:bg-gray-700'}`}>
+      className={`w-12 h-6 rounded-full relative shrink-0 transition-all duration-300 ${value ? 'bg-primary-600' : 'bg-gray-200 dark:bg-gray-700'}`}>
       <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow-sm transition-all duration-300 ${value ? 'left-6' : 'left-0.5'}`} />
     </button>
   );
@@ -139,6 +139,9 @@ export default function AjustesPage() {
   const ESTILOS = [
     { value: 'profesional', label: 'Profesional (Sobrio)', colorClass: 'bg-slate-500' },
     { value: 'vibrante', label: 'Vibrante (Moderno)', colorClass: 'bg-violet-500' },
+    { value: 'bosque', label: 'Bosque (Esmeralda)', colorClass: 'bg-emerald-500' },
+    { value: 'oceano', label: 'Océano (Profundo)', colorClass: 'bg-cyan-500' },
+    { value: 'ocaso', label: 'Ocaso (Ámbar)', colorClass: 'bg-orange-500' },
   ];
 
   const showToast = (message, type = 'success') => setToast({ message, type });
@@ -169,10 +172,9 @@ export default function AjustesPage() {
   // Aplicar estilo visual
   useEffect(() => {
     const root = document.documentElement;
-    if (estilo === 'vibrante') {
-      root.classList.add('theme-vibrant');
-    } else {
-      root.classList.remove('theme-vibrant');
+    root.classList.remove('theme-vibrante', 'theme-bosque', 'theme-oceano', 'theme-ocaso');
+    if (estilo !== 'profesional') {
+      root.classList.add(`theme-${estilo}`);
     }
     localStorage.setItem('yc_estilo', estilo);
   }, [estilo]);
@@ -244,7 +246,7 @@ export default function AjustesPage() {
       </div>
 
       {/* ── PERFIL ───────────────────────────────────────────────────────────── */}
-      <Section title={t('settings.profile')} Icon={User} iconColor="bg-violet-600">
+      <Section title={t('settings.profile')} Icon={User} iconColor="bg-primary-600">
         <div className="space-y-6">
           {/* Avatar + selector de color */}
           <div className="flex items-start gap-6">
@@ -259,7 +261,7 @@ export default function AjustesPage() {
               <div className="flex flex-wrap gap-2">
                 {AVATAR_COLORS.map(c => (
                   <button key={c.value} onClick={() => setAvatarColor(c.value)} title={c.label}
-                    className={`w-8 h-8 rounded-xl bg-gradient-to-br ${c.value} transition-all hover:scale-110 ${avatarColor === c.value ? 'ring-2 ring-offset-2 ring-violet-500 dark:ring-offset-gray-900 scale-110' : ''}`}
+                    className={`w-8 h-8 rounded-xl bg-gradient-to-br ${c.value} transition-all hover:scale-110 ${avatarColor === c.value ? 'ring-2 ring-offset-2 ring-primary-500 dark:ring-offset-gray-900 scale-110' : ''}`}
                   />
                 ))}
               </div>
@@ -278,7 +280,7 @@ export default function AjustesPage() {
           <Field label={t('settings.bio')} hint={t('settings.bioHint')}>
             <textarea value={bio} onChange={e => setBio(e.target.value)}
               placeholder="Cuéntanos sobre ti..." rows={3} maxLength={200}
-              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-500 transition resize-none" />
+              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 transition resize-none" />
             <div className="flex justify-end"><span className="text-[11px] text-gray-400">{bio.length}/200</span></div>
           </Field>
           <div className="flex justify-end">
@@ -304,7 +306,7 @@ export default function AjustesPage() {
           </Field>
           
           <Field label="Estilo Visual">
-            <div className="grid grid-cols-2 gap-3 mt-1">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-1">
               {ESTILOS.map(({ value, label, colorClass }) => (
                 <button key={value} onClick={() => setEstilo(value)}
                   className={`flex items-center justify-between px-4 py-4 rounded-2xl border-2 transition-all hover:-translate-y-1 ${estilo === value ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20 shadow-md' : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'}`}>
@@ -424,7 +426,7 @@ export default function AjustesPage() {
             <div>
               <p className="font-bold text-gray-900 dark:text-white">{user?.nombre}</p>
               <p className="text-xs text-gray-400">{user?.email}</p>
-              <span className={`inline-block mt-1 text-[10px] font-bold px-2 py-0.5 rounded-full ${user?.rol === 'creador' ? 'bg-violet-100 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400' : 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'}`}>
+              <span className={`inline-block mt-1 text-[10px] font-bold px-2 py-0.5 rounded-full ${user?.rol === 'creador' ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400' : 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'}`}>
                 {user?.rol === 'creador' ? '🎓 Creador' : '👨‍🎓 Estudiante'}
               </span>
             </div>

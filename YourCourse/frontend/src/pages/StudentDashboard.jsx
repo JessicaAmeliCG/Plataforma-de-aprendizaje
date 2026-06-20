@@ -33,7 +33,7 @@ function CursoCard({ curso, isEnrolled, onEnroll }) {
       {/* Overlay action */}
       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center p-4">
         {isEnrolled ? (
-          <button onClick={() => navigate(`/creator/cursos/${curso.id}/ver`)} className="bg-white text-gray-900 px-4 py-2 rounded-xl font-bold shadow-lg hover:scale-105 transition-transform">
+          <button onClick={() => navigate(`/student/cursos/${curso.id}/ver`)} className="bg-white text-gray-900 px-4 py-2 rounded-xl font-bold shadow-lg hover:scale-105 transition-transform">
             Continuar
           </button>
         ) : (

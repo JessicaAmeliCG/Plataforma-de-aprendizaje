@@ -34,7 +34,7 @@ function EstudianteCard({ estudiante, index }) {
         {/* Avatar */}
         <div className={`
           w-11 h-11 rounded-xl shrink-0
-          bg-gradient-to-br ${estudiante.avatar_color || 'from-violet-500 to-purple-700'}
+          bg-gradient-to-br ${estudiante.avatar_color || 'from-primary-500 to-primary-700'}
           flex items-center justify-center
           text-white font-bold text-sm
         `}>
@@ -52,7 +52,7 @@ function EstudianteCard({ estudiante, index }) {
         {/* Badges */}
         <div className="flex items-center gap-3 shrink-0">
           <div className="text-center hidden sm:block">
-            <p className="text-lg font-black text-violet-600 dark:text-violet-400">{estudiante.cursos.length}</p>
+            <p className="text-lg font-black text-primary-600 dark:text-primary-400">{estudiante.cursos.length}</p>
             <p className="text-[10px] text-gray-400">cursos</p>
           </div>
           <div className="text-center hidden sm:block">
@@ -84,7 +84,7 @@ function EstudianteCard({ estudiante, index }) {
                     c.modelo_negocio === 'gratis'
                       ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
                       : c.modelo_negocio === 'suscripcion'
-                      ? 'bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400'
+                      ? 'bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-400'
                       : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
                   }`}>
                     {c.modelo_negocio === 'gratis' ? 'GRATIS' : c.modelo_negocio === 'suscripcion' ? 'SUSCR.' : 'PAGO'}
@@ -150,7 +150,7 @@ export default function EstudiantesPage() {
       {/* Stats rápidas */}
       <div className="grid grid-cols-3 gap-4 animate-fade-in-up" style={{ animationDelay: '80ms' }}>
         {[
-          { label: 'Total registrados', value: estudiantes.length,       icon: Users,    color: 'text-violet-600 dark:text-violet-400' },
+          { label: 'Total registrados', value: estudiantes.length,       icon: Users,    color: 'text-primary-600 dark:text-primary-400' },
           { label: 'Con cursos activos', value: estudiantes.filter(e => e.cursos.length > 0).length, icon: BookOpen, color: 'text-blue-600 dark:text-blue-400' },
           { label: 'Inscripciones',     value: totalInscripciones,       icon: Calendar, color: 'text-emerald-600 dark:text-emerald-400' },
         ].map(s => (
@@ -176,7 +176,7 @@ export default function EstudiantesPage() {
             border border-gray-200 dark:border-gray-700
             text-gray-900 dark:text-white
             placeholder-gray-400
-            focus:outline-none focus:ring-2 focus:ring-violet-500
+            focus:outline-none focus:ring-2 focus:ring-primary-500
             transition-all shadow-sm
           "
         />
@@ -185,7 +185,7 @@ export default function EstudiantesPage() {
       {/* Lista */}
       {loading ? (
         <div className="flex flex-col items-center justify-center py-16 gap-3">
-          <Loader2 size={32} className="text-violet-500 animate-spin" />
+          <Loader2 size={32} className="text-primary-500 animate-spin" />
           <p className="text-sm text-gray-500 dark:text-gray-400">Cargando estudiantes…</p>
         </div>
       ) : error ? (

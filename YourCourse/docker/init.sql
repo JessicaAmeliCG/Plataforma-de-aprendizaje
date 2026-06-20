@@ -36,9 +36,9 @@ CREATE TABLE IF NOT EXISTS usuarios (
     nombre_completo VARCHAR(255),
     avatar_url      TEXT,
     bio             TEXT,
-    -- Rol de nivel global (SuperAdmin y Staff son roles de plataforma, no contextuales)
+    -- Rol de nivel global (SuperAdmin y Ayudante son roles de plataforma, no contextuales)
     rol_global      VARCHAR(50) NOT NULL DEFAULT 'estudiante'
-                        CHECK (rol_global IN ('superadmin', 'staff', 'auditor', 'estudiante')),
+                        CHECK (rol_global IN ('superadmin_lider', 'ayudante_gral', 'estudiante')),
     -- Tipo de suscripción del consumidor
     tipo_suscripcion VARCHAR(20) NOT NULL DEFAULT 'base'
                         CHECK (tipo_suscripcion IN ('base', 'vip', 'premium')),
@@ -95,7 +95,7 @@ CREATE TABLE IF NOT EXISTS roles_contextuales (
     academia_id UUID        NOT NULL REFERENCES academias(id) ON DELETE CASCADE,
     -- Rol dentro de esta academia específica
     rol         VARCHAR(50) NOT NULL
-                    CHECK (rol IN ('owner', 'editor', 'moderador', 'estudiante')),
+                    CHECK (rol IN ('creador', 'maestro', 'estudiante')),
     asignado_por UUID        REFERENCES usuarios(id) ON DELETE SET NULL, -- Quién asignó el rol
     created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -287,3 +287,66 @@ BEGIN
         ', t, t);
     END LOOP;
 END $$;
+-- ============================================================
+-- DATOS SEMILLA (B2B2C Architecture)
+-- ============================================================
+DO 
+DECLARE
+    superadmin_id UUID := gen_random_uuid();
+    ayudante1_id UUID := gen_random_uuid();
+    ayudante2_id UUID := gen_random_uuid();
+    creador_id UUID;
+    academia_id UUID;
+    maestro_id UUID;
+    alumno_id UUID;
+    i INT;
+    j INT;
+    k INT;
+BEGIN
+    -- 1 SuperAdmin Lider
+    INSERT INTO usuarios (id, email, username, password_hash, nombre_completo, rol_global)
+    VALUES (superadmin_id, 'superadmin@yourcourse.mx', 'superadmin', crypt('superadmin123', gen_salt('bf')), 'Super Admin', 'superadmin_lider');
+
+    -- 2 Ayudante General
+    INSERT INTO usuarios (id, email, username, password_hash, nombre_completo, rol_global)
+    VALUES (ayudante1_id, 'ayudante1@yourcourse.mx', 'ayudante1', crypt('ayudante123', gen_salt('bf')), 'Ayudante Uno', 'ayudante_gral'),
+           (ayudante2_id, 'ayudante2@yourcourse.mx', 'ayudante2', crypt('ayudante123', gen_salt('bf')), 'Ayudante Dos', 'ayudante_gral');
+
+    -- 3 Academias
+    FOR i IN 1..3 LOOP
+        creador_id := gen_random_uuid();
+        academia_id := gen_random_uuid();
+
+        -- Crear el Creador (Usuario global)
+        INSERT INTO usuarios (id, email, username, password_hash, nombre_completo, rol_global)
+        VALUES (creador_id, 'creador'||i||'@academia.mx', 'creador'||i, crypt('creador123', gen_salt('bf')), 'Creador Academia ' || i, 'estudiante');
+
+        -- Crear la Academia
+        INSERT INTO academias (id, owner_id, nombre, slug, descripcion)
+        VALUES (academia_id, creador_id, 'Academia ' || i, 'academia-' || i, 'Academia Semilla ' || i);
+
+        -- Rol Contextual del Creador en su propia academia
+        INSERT INTO roles_contextuales (usuario_id, academia_id, rol)
+        VALUES (creador_id, academia_id, 'creador');
+
+        -- Crear 3 Maestros para esta academia
+        FOR j IN 1..3 LOOP
+            maestro_id := gen_random_uuid();
+            INSERT INTO usuarios (id, email, username, password_hash, nombre_completo, rol_global)
+            VALUES (maestro_id, 'maestro'||j||'_acad'||i||'@academia.mx', 'maestro'||j||'_acad'||i, crypt('maestro123', gen_salt('bf')), 'Maestro ' || j || ' (Academia ' || i || ')', 'estudiante');
+            
+            INSERT INTO roles_contextuales (usuario_id, academia_id, rol)
+            VALUES (maestro_id, academia_id, 'maestro');
+        END LOOP;
+
+        -- Crear 5 Alumnos para esta academia
+        FOR k IN 1..5 LOOP
+            alumno_id := gen_random_uuid();
+            INSERT INTO usuarios (id, email, username, password_hash, nombre_completo, rol_global)
+            VALUES (alumno_id, 'alumno'||k||'_acad'||i||'@academia.mx', 'alumno'||k||'_acad'||i, crypt('alumno123', gen_salt('bf')), 'Alumno ' || k || ' (Academia ' || i || ')', 'estudiante');
+            
+            INSERT INTO roles_contextuales (usuario_id, academia_id, rol)
+            VALUES (alumno_id, academia_id, 'estudiante');
+        END LOOP;
+    END LOOP;
+END ;

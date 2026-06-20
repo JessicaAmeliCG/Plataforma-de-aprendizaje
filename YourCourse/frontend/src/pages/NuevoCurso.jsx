@@ -12,12 +12,12 @@ import {
 import { api } from '../services/api';
 
 const GRADIENTS = [
-  { label: 'Violeta',   value: 'from-violet-600 to-indigo-700' },
+  { label: 'Violeta',   value: 'from-primary-600 to-indigo-700' },
   { label: 'Azul',      value: 'from-blue-600 to-cyan-600'    },
   { label: 'Verde',     value: 'from-teal-500 to-emerald-600' },
   { label: 'Rosa',      value: 'from-rose-500 to-pink-600'    },
   { label: 'Ámbar',     value: 'from-amber-500 to-orange-600' },
-  { label: 'Índigo',    value: 'from-indigo-600 to-purple-700'},
+  { label: 'Índigo',    value: 'from-indigo-600 to-primary-700'},
 ];
 
 const MODELOS = [
@@ -59,7 +59,7 @@ function PreviewCard({ form }) {
         <div className="pt-2 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between">
           {form.modelo_negocio === 'gratis'      && <span className="text-xs font-bold text-emerald-600">GRATIS</span>}
           {form.modelo_negocio === 'pago_unico'  && <span className="text-sm font-bold text-gray-900 dark:text-white">${form.precio || 0} MXN</span>}
-          {form.modelo_negocio === 'suscripcion' && <span className="text-xs font-bold text-violet-600">${form.precio || 0}/mes</span>}
+          {form.modelo_negocio === 'suscripcion' && <span className="text-xs font-bold text-primary-600">${form.precio || 0}/mes</span>}
           <Star size={13} className="text-gray-300" />
         </div>
       </div>
@@ -73,7 +73,7 @@ function Field({ label, required, children, hint }) {
     <div className="space-y-1.5">
       <label className="flex items-center gap-1 text-sm font-semibold text-gray-700 dark:text-gray-300">
         {label}
-        {required && <span className="text-violet-500 text-xs">*</span>}
+        {required && <span className="text-primary-500 text-xs">*</span>}
       </label>
       {children}
       {hint && <p className="text-xs text-gray-400 dark:text-gray-500">{hint}</p>}
@@ -87,7 +87,7 @@ const INPUT_CLS = `
   border border-gray-200 dark:border-gray-700
   text-gray-900 dark:text-white
   placeholder-gray-400 dark:placeholder-gray-600
-  focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent
+  focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent
   transition-all
 `;
 
@@ -168,7 +168,7 @@ export default function NuevoCurso() {
             {/* Información básica */}
             <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-6 space-y-4">
               <h3 className="font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                <BookOpen size={16} className="text-violet-500" /> Información básica
+                <BookOpen size={16} className="text-primary-500" /> Información básica
               </h3>
 
               <Field label="Título del curso" required>
@@ -221,7 +221,7 @@ export default function NuevoCurso() {
             {/* Precio y modelo */}
             <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-6 space-y-4">
               <h3 className="font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                <DollarSign size={16} className="text-violet-500" /> Monetización
+                <DollarSign size={16} className="text-primary-500" /> Monetización
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 {MODELOS.map(m => (
@@ -231,7 +231,7 @@ export default function NuevoCurso() {
                     onClick={() => set('modelo_negocio', m.value)}
                     className={`flex flex-col items-center gap-1 p-4 rounded-xl border-2 transition-all text-center ${
                       form.modelo_negocio === m.value
-                        ? 'border-violet-500 bg-violet-50 dark:bg-violet-900/20'
+                        ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
                         : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
                     }`}
                   >
@@ -261,7 +261,7 @@ export default function NuevoCurso() {
             {/* Color del curso */}
             <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-6 space-y-4">
               <h3 className="font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                <Palette size={16} className="text-violet-500" /> Color de la tarjeta
+                <Palette size={16} className="text-primary-500" /> Color de la tarjeta
               </h3>
               <div className="flex flex-wrap gap-3">
                 {GRADIENTS.map(g => (
@@ -271,7 +271,7 @@ export default function NuevoCurso() {
                     onClick={() => set('gradient_class', g.value)}
                     title={g.label}
                     className={`w-10 h-10 rounded-xl bg-gradient-to-br ${g.value} transition-all ${
-                      form.gradient_class === g.value ? 'ring-3 ring-offset-2 ring-violet-500 scale-110' : 'hover:scale-105'
+                      form.gradient_class === g.value ? 'ring-3 ring-offset-2 ring-primary-500 scale-110' : 'hover:scale-105'
                     }`}
                   />
                 ))}
@@ -317,11 +317,11 @@ export default function NuevoCurso() {
               className="
                 w-full flex items-center justify-center gap-2
                 px-6 py-3 rounded-xl
-                bg-gradient-to-r from-violet-600 to-purple-600
-                hover:from-violet-500 hover:to-purple-500
+                bg-gradient-to-r from-primary-600 to-primary-600
+                hover:from-primary-500 hover:to-primary-500
                 disabled:opacity-60
                 text-white font-bold text-sm
-                shadow-lg shadow-violet-500/30
+                shadow-lg shadow-primary-500/30
                 transition-all active:scale-95
               "
             >

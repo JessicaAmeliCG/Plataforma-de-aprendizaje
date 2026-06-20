@@ -37,7 +37,7 @@ function CursoCard({ curso, index, onDelete }) {
       className="group relative flex flex-col bg-white dark:bg-gray-900 rounded-2xl overflow-visible border border-gray-200 dark:border-gray-800 shadow-sm hover:shadow-xl dark:hover:shadow-gray-950/80 transition-all duration-300 hover:-translate-y-1.5 animate-fade-in-up"
       style={{ animationDelay: `${200 + index * 70}ms` }}
     >
-      <div className={`relative h-36 bg-gradient-to-br ${curso.gradient_class || 'from-violet-600 to-indigo-700'} rounded-t-2xl flex items-center justify-center overflow-hidden`}>
+      <div className={`relative h-36 bg-gradient-to-br ${curso.gradient_class || 'from-primary-600 to-indigo-700'} rounded-t-2xl flex items-center justify-center overflow-hidden`}>
         <div className="absolute inset-0 opacity-10"
           style={{ backgroundImage: 'radial-gradient(circle at 20% 80%, white 1px, transparent 1px)', backgroundSize: '25px 25px' }} />
         <BookOpen size={36} className="text-white/50" />
@@ -67,7 +67,7 @@ function CursoCard({ curso, index, onDelete }) {
       </div>
 
       <div className="flex flex-col flex-1 p-4 gap-2">
-        <h3 className="font-semibold text-gray-900 dark:text-white text-sm leading-snug line-clamp-2 group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">
+        <h3 className="font-semibold text-gray-900 dark:text-white text-sm leading-snug line-clamp-2 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
           {curso.titulo}
         </h3>
         <div className="flex items-center gap-3 text-xs text-gray-400 dark:text-gray-500">
@@ -78,7 +78,7 @@ function CursoCard({ curso, index, onDelete }) {
         <div className="flex items-center justify-between pt-2 mt-auto border-t border-gray-100 dark:border-gray-800">
           {curso.modelo_negocio === 'gratis'      && <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">GRATIS</span>}
           {curso.modelo_negocio === 'pago_unico'  && <span className="text-sm font-bold text-gray-900 dark:text-white">${Number(curso.precio).toLocaleString()} MXN</span>}
-          {curso.modelo_negocio === 'suscripcion' && <span className="text-xs font-bold text-violet-600 dark:text-violet-400">${Number(curso.precio).toLocaleString()}/mes</span>}
+          {curso.modelo_negocio === 'suscripcion' && <span className="text-xs font-bold text-primary-600 dark:text-primary-400">${Number(curso.precio).toLocaleString()}/mes</span>}
           <span className="text-xs text-gray-400 dark:text-gray-500">{curso.modulos_count || 0} módulos</span>
         </div>
       </div>
@@ -135,7 +135,7 @@ export default function DashboardHome() {
     : cursos.filter(c => c.estado === filtro);
 
   const STAT_CARDS = [
-    { label: 'Cursos totales',   value: stats.cursos,      Icon: BookOpen,    from: 'from-violet-500', to: 'to-purple-600', delta: `${stats.publicados || 0} publicados` },
+    { label: 'Cursos totales',   value: stats.cursos,      Icon: BookOpen,    from: 'from-primary-500', to: 'to-primary-600', delta: `${stats.publicados || 0} publicados` },
     { label: 'Estudiantes',      value: stats.estudiantes, Icon: Users,       from: 'from-blue-500',   to: 'to-cyan-500',   delta: 'Registrados en la plataforma' },
     { label: 'Inscripciones',    value: stats.inscritos,   Icon: Award,       from: 'from-emerald-500',to: 'to-teal-500',   delta: 'Total de inscripciones' },
     { label: 'Ingresos aprox.',  value: `$${cursos.filter(c=>c.modelo_negocio!=='gratis').reduce((a,c)=>a+(c.precio||0)*(c.estudiantes||0),0).toLocaleString()}`,
@@ -156,7 +156,7 @@ export default function DashboardHome() {
         <button
           id="btn-crear-curso"
           onClick={() => navigate('/creator/cursos/nuevo')}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 text-white font-semibold text-sm shadow-lg shadow-violet-500/30 hover:shadow-violet-500/50 transition-all active:scale-95 whitespace-nowrap"
+          className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-primary-600 to-primary-600 hover:from-primary-500 hover:to-primary-500 text-white font-semibold text-sm shadow-lg shadow-primary-500/30 hover:shadow-primary-500/50 transition-all active:scale-95 whitespace-nowrap"
         >
           <Plus size={17} /> Crear Nuevo Curso
         </button>
@@ -198,7 +198,7 @@ export default function DashboardHome() {
         <div className="xl:col-span-2 space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="text-base font-bold text-gray-900 dark:text-white flex items-center gap-2">
-              <BookOpen size={18} className="text-violet-500" /> Mis Cursos
+              <BookOpen size={18} className="text-primary-500" /> Mis Cursos
             </h3>
             <div className="flex gap-1 bg-gray-100 dark:bg-gray-800 p-1 rounded-xl">
               {['todos','publicado','borrador'].map(f => (
@@ -225,10 +225,10 @@ export default function DashboardHome() {
               ))}
               <button
                 onClick={() => navigate('/creator/cursos/nuevo')}
-                className="flex flex-col items-center justify-center gap-3 min-h-[200px] rounded-2xl border-2 border-dashed border-gray-200 dark:border-gray-800 text-gray-400 dark:text-gray-600 hover:border-violet-400 dark:hover:border-violet-700 hover:text-violet-500 dark:hover:text-violet-400 hover:bg-violet-50/50 dark:hover:bg-violet-900/10 transition-all group animate-fade-in-up"
+                className="flex flex-col items-center justify-center gap-3 min-h-[200px] rounded-2xl border-2 border-dashed border-gray-200 dark:border-gray-800 text-gray-400 dark:text-gray-600 hover:border-primary-400 dark:hover:border-primary-700 hover:text-primary-500 dark:hover:text-primary-400 hover:bg-primary-50/50 dark:hover:bg-primary-900/10 transition-all group animate-fade-in-up"
                 style={{ animationDelay: `${200 + cursosFiltrados.length * 70}ms` }}
               >
-                <div className="p-4 rounded-2xl bg-gray-100 dark:bg-gray-800 group-hover:bg-violet-100 dark:group-hover:bg-violet-900/20 transition-colors">
+                <div className="p-4 rounded-2xl bg-gray-100 dark:bg-gray-800 group-hover:bg-primary-100 dark:group-hover:bg-primary-900/20 transition-colors">
                   <Plus size={26} />
                 </div>
                 <span className="text-sm font-semibold">Nuevo Curso</span>
@@ -240,13 +240,13 @@ export default function DashboardHome() {
         {/* Accesos rápidos */}
         <div className="space-y-4 animate-fade-in-up" style={{ animationDelay: '400ms' }}>
           <h3 className="text-base font-bold text-gray-900 dark:text-white flex items-center gap-2">
-            <Zap size={18} className="text-violet-500" /> Accesos rápidos
+            <Zap size={18} className="text-primary-500" /> Accesos rápidos
           </h3>
 
           <div className="space-y-3">
             {[
               { label: 'Ver estudiantes',   sub: `${stats.estudiantes} registrados`, icon: Users,    to: '/creator/estudiantes', color: 'text-blue-500' },
-              { label: 'Crear nuevo curso', sub: 'Añade contenido',                  icon: Plus,     to: '/creator/cursos/nuevo', color: 'text-violet-500' },
+              { label: 'Crear nuevo curso', sub: 'Añade contenido',                  icon: Plus,     to: '/creator/cursos/nuevo', color: 'text-primary-500' },
               { label: 'Ver analíticas',    sub: 'Estadísticas detalladas',          icon: TrendingUp,to: '/creator/analiticas', color: 'text-emerald-500' },
             ].map(item => (
               <button key={item.label} onClick={() => navigate(item.to)}
@@ -264,12 +264,12 @@ export default function DashboardHome() {
           </div>
 
           {/* XP card */}
-          <div className="bg-gradient-to-br from-violet-600 to-purple-700 rounded-2xl p-5 text-white shadow-lg shadow-violet-500/20">
-            <p className="text-xs font-semibold text-violet-200 mb-1">Tu academia</p>
+          <div className="bg-gradient-to-br from-primary-600 to-primary-700 rounded-2xl p-5 text-white shadow-lg shadow-primary-500/20">
+            <p className="text-xs font-semibold text-primary-200 mb-1">Tu academia</p>
             <p className="text-3xl font-black">{user?.nombre || 'Creador'}</p>
-            <p className="text-xs text-violet-200 mt-1">{user?.email}</p>
+            <p className="text-xs text-primary-200 mt-1">{user?.email}</p>
             <div className="mt-4 flex items-center gap-2">
-              <Star size={14} className="fill-violet-200 text-violet-200" />
+              <Star size={14} className="fill-primary-200 text-primary-200" />
               <span className="text-xs font-semibold">Creador verificado</span>
             </div>
           </div>

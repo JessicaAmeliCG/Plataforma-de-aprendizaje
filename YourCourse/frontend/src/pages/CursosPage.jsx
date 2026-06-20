@@ -38,7 +38,7 @@ function CursoCard({ curso, index, onDelete }) {
     >
       {/* Portada con degradado */}
       <div
-        className={`relative h-36 bg-gradient-to-br ${curso.gradient_class || 'from-violet-600 to-indigo-700'} rounded-t-2xl flex items-center justify-center overflow-hidden cursor-pointer`}
+        className={`relative h-36 bg-gradient-to-br ${curso.gradient_class || 'from-primary-600 to-indigo-700'} rounded-t-2xl flex items-center justify-center overflow-hidden cursor-pointer`}
         onClick={() => navigate(`/creator/cursos/${curso.id}`)}
       >
         <div
@@ -97,7 +97,7 @@ function CursoCard({ curso, index, onDelete }) {
         className="flex flex-col flex-1 p-4 gap-2 cursor-pointer"
         onClick={() => navigate(`/creator/cursos/${curso.id}`)}
       >
-        <h3 className="font-semibold text-gray-900 dark:text-white text-sm leading-snug line-clamp-2 group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">
+        <h3 className="font-semibold text-gray-900 dark:text-white text-sm leading-snug line-clamp-2 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
           {curso.titulo}
         </h3>
         {curso.descripcion && (
@@ -113,8 +113,8 @@ function CursoCard({ curso, index, onDelete }) {
         <div className="flex items-center justify-between pt-2 mt-auto border-t border-gray-100 dark:border-gray-800">
           {curso.modelo_negocio === 'gratis'      && <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">GRATIS</span>}
           {curso.modelo_negocio === 'pago_unico'  && <span className="text-sm font-bold text-gray-900 dark:text-white">${Number(curso.precio).toLocaleString()} MXN</span>}
-          {curso.modelo_negocio === 'suscripcion' && <span className="text-xs font-bold text-violet-600 dark:text-violet-400">${Number(curso.precio).toLocaleString()}/mes</span>}
-          <span className="text-xs text-violet-500 dark:text-violet-400 font-medium flex items-center gap-1 ml-auto">
+          {curso.modelo_negocio === 'suscripcion' && <span className="text-xs font-bold text-primary-600 dark:text-primary-400">${Number(curso.precio).toLocaleString()}/mes</span>}
+          <span className="text-xs text-primary-500 dark:text-primary-400 font-medium flex items-center gap-1 ml-auto">
             <Video size={11} /> Ver lecciones →
           </span>
         </div>
@@ -127,8 +127,8 @@ function CursoCard({ curso, index, onDelete }) {
 function EmptyState({ busqueda, onCrear }) {
   return (
     <div className="col-span-full flex flex-col items-center justify-center py-20 gap-5 text-center">
-      <div className="w-20 h-20 rounded-3xl bg-violet-100 dark:bg-violet-900/20 flex items-center justify-center">
-        <GraduationCap size={36} className="text-violet-500" />
+      <div className="w-20 h-20 rounded-3xl bg-primary-100 dark:bg-primary-900/20 flex items-center justify-center">
+        <GraduationCap size={36} className="text-primary-500" />
       </div>
       <div>
         <h3 className="font-bold text-gray-900 dark:text-white text-lg">
@@ -143,7 +143,7 @@ function EmptyState({ busqueda, onCrear }) {
       {!busqueda && (
         <button
           onClick={onCrear}
-          className="flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 text-white font-semibold text-sm shadow-lg shadow-violet-500/30 hover:shadow-violet-500/50 transition-all active:scale-95"
+          className="flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-primary-600 to-primary-600 hover:from-primary-500 hover:to-primary-500 text-white font-semibold text-sm shadow-lg shadow-primary-500/30 hover:shadow-primary-500/50 transition-all active:scale-95"
         >
           <Plus size={17} /> Crear primer curso
         </button>
@@ -200,7 +200,7 @@ export default function CursosPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-            <BookOpen size={24} className="text-violet-500" /> Mis Cursos
+            <BookOpen size={24} className="text-primary-500" /> Mis Cursos
           </h2>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
             Gestiona tus cursos, sube videos y organiza el contenido.
@@ -209,7 +209,7 @@ export default function CursosPage() {
         <button
           id="btn-cursos-nuevo"
           onClick={() => navigate('/creator/cursos/nuevo')}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 text-white font-semibold text-sm shadow-lg shadow-violet-500/30 hover:shadow-violet-500/50 transition-all active:scale-95 whitespace-nowrap"
+          className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-primary-600 to-primary-600 hover:from-primary-500 hover:to-primary-500 text-white font-semibold text-sm shadow-lg shadow-primary-500/30 hover:shadow-primary-500/50 transition-all active:scale-95 whitespace-nowrap"
         >
           <Plus size={17} /> Crear Curso
         </button>
@@ -219,7 +219,7 @@ export default function CursosPage() {
       {!loading && cursos.length > 0 && (
         <div className="grid grid-cols-3 gap-3">
           {[
-            { label: 'Total cursos',   value: cursos.length,   color: 'text-violet-600 dark:text-violet-400', bg: 'bg-violet-50 dark:bg-violet-900/20' },
+            { label: 'Total cursos',   value: cursos.length,   color: 'text-primary-600 dark:text-primary-400', bg: 'bg-primary-50 dark:bg-primary-900/20' },
             { label: 'Publicados',     value: publicados,      color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-50 dark:bg-emerald-900/20' },
             { label: 'Total alumnos',  value: totalAlumnos,    color: 'text-blue-600 dark:text-blue-400', bg: 'bg-blue-50 dark:bg-blue-900/20' },
           ].map(s => (
@@ -240,7 +240,7 @@ export default function CursosPage() {
             placeholder="Buscar curso por título..."
             value={busqueda}
             onChange={e => setBusqueda(e.target.value)}
-            className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-white text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-500 transition"
+            className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-white text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 transition"
           />
         </div>
         <div className="flex gap-1 bg-gray-100 dark:bg-gray-800 p-1 rounded-xl self-start sm:self-auto">
@@ -290,9 +290,9 @@ export default function CursosPage() {
           {!busqueda && (
             <button
               onClick={() => navigate('/creator/cursos/nuevo')}
-              className="flex flex-col items-center justify-center gap-3 min-h-[220px] rounded-2xl border-2 border-dashed border-gray-200 dark:border-gray-800 text-gray-400 dark:text-gray-600 hover:border-violet-400 dark:hover:border-violet-700 hover:text-violet-500 dark:hover:text-violet-400 hover:bg-violet-50/50 dark:hover:bg-violet-900/10 transition-all group"
+              className="flex flex-col items-center justify-center gap-3 min-h-[220px] rounded-2xl border-2 border-dashed border-gray-200 dark:border-gray-800 text-gray-400 dark:text-gray-600 hover:border-primary-400 dark:hover:border-primary-700 hover:text-primary-500 dark:hover:text-primary-400 hover:bg-primary-50/50 dark:hover:bg-primary-900/10 transition-all group"
             >
-              <div className="p-4 rounded-2xl bg-gray-100 dark:bg-gray-800 group-hover:bg-violet-100 dark:group-hover:bg-violet-900/20 transition-colors">
+              <div className="p-4 rounded-2xl bg-gray-100 dark:bg-gray-800 group-hover:bg-primary-100 dark:group-hover:bg-primary-900/20 transition-colors">
                 <Plus size={26} />
               </div>
               <span className="text-sm font-semibold">Nuevo Curso</span>

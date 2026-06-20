@@ -76,7 +76,7 @@ export default function AnaliticasPage() {
 
   if (loading) return (
     <div className="flex items-center justify-center h-64">
-      <Loader2 size={32} className="animate-spin text-violet-500" />
+      <Loader2 size={32} className="animate-spin text-primary-500" />
     </div>
   );
   if (error) return (
@@ -140,7 +140,7 @@ export default function AnaliticasPage() {
 
       {/* KPIs globales */}
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
-        <KpiCard label="Cursos creados"    value={kpis.totalCursos}        sub={`${cursos.filter(c=>c.estado==='publicado').length} publicados`} Icon={BookOpen}    gradient="from-violet-500 to-purple-600" delay={0} />
+        <KpiCard label="Cursos creados"    value={kpis.totalCursos}        sub={`${cursos.filter(c=>c.estado==='publicado').length} publicados`} Icon={BookOpen}    gradient="from-primary-500 to-primary-600" delay={0} />
         <KpiCard label="Estudiantes"       value={kpis.totalEstudiantes}   sub="En la plataforma"                                                  Icon={Users}       gradient="from-blue-500 to-cyan-500"     delay={80} />
         <KpiCard label="Inscripciones"     value={kpis.totalInscripciones} sub="Total de inscripciones"                                            Icon={Award}       gradient="from-emerald-500 to-teal-500"  delay={160} />
         <KpiCard label="Ingresos estimados" value={`$${(kpis.ingresoTotal||0).toLocaleString()}`} sub="MXN acumulado"                              Icon={DollarSign}  gradient="from-amber-400 to-orange-500"  delay={240} />
@@ -256,7 +256,7 @@ export default function AnaliticasPage() {
         {/* Gráfica: Actividad mensual (inscripciones) */}
         <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-6 shadow-sm">
           <div className="flex items-center gap-2 mb-6">
-            <div className="p-2 rounded-xl bg-violet-100 dark:bg-violet-900/20"><TrendingUp size={18} className="text-violet-500" /></div>
+            <div className="p-2 rounded-xl bg-primary-100 dark:bg-primary-900/20"><TrendingUp size={18} className="text-primary-500" /></div>
             <div>
               <h3 className="font-bold text-gray-900 dark:text-white text-sm">Actividad Mensual</h3>
               <p className="text-xs text-gray-400">Inscripciones por mes (últimos 6 meses)</p>
@@ -292,7 +292,7 @@ export default function AnaliticasPage() {
       {cursos.length > 0 && (
         <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-6 shadow-sm overflow-x-auto">
           <h3 className="font-bold text-gray-900 dark:text-white text-sm mb-4 flex items-center gap-2">
-            <BookOpen size={16} className="text-violet-500" /> Resumen por Curso
+            <BookOpen size={16} className="text-primary-500" /> Resumen por Curso
           </h3>
           <table className="w-full text-sm min-w-[600px]">
             <thead>
