@@ -3,13 +3,15 @@ import { useNavigate } from 'react-router-dom';
 import { BookOpen, AlertCircle, Plus, Layers, GraduationCap } from 'lucide-react';
 import { api } from '../services/api';
 import useAuthStore from '../stores/authStore';
+import { useT } from '../contexts/I18nContext';
 
 function CursoCard({ curso, isEnrolled, onEnroll }) {
   const navigate = useNavigate();
+  const t = useT();
 
   return (
     <div className="group relative flex flex-col bg-white dark:bg-gray-900 rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-800 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-      <div className={`h-32 bg-gradient-to-br ${curso.gradient_class || 'from-blue-600 to-cyan-700'} flex items-center justify-center relative overflow-hidden`}>
+      <div className={`h-32 bg-gradient-to-br ${curso.gradient_class || 'from-primary-600 to-primary-700'} flex items-center justify-center relative overflow-hidden`}>
         <div className="absolute inset-0 opacity-10"
              style={{ backgroundImage: 'radial-gradient(circle at 20% 80%, white 1px, transparent 1px)', backgroundSize: '25px 25px' }} />
         <BookOpen size={32} className="text-white/50" />
@@ -25,8 +27,8 @@ function CursoCard({ curso, isEnrolled, onEnroll }) {
           </p>
         )}
         <div className="flex items-center gap-3 text-xs text-gray-400 dark:text-gray-500 mt-auto pt-2 border-t border-gray-100 dark:border-gray-800">
-          <span className="font-bold text-gray-900 dark:text-white">{curso.modelo_negocio === 'gratis' ? 'GRATIS' : `$${curso.precio}`}</span>
-          {curso.modulos_count > 0 && <span className="flex items-center gap-1 ml-auto"><Layers size={11} />{curso.modulos_count} mód.</span>}
+          <span className="font-bold text-gray-900 dark:text-white">{curso.modelo_negocio === 'gratis' ? t('student.free') : `$${curso.precio}`}</span>
+          {curso.modulos_count > 0 && <span className="flex items-center gap-1 ml-auto"><Layers size={11} />{t('student.modules', { n: curso.modulos_count })}</span>}
         </div>
       </div>
       
@@ -34,11 +36,11 @@ function CursoCard({ curso, isEnrolled, onEnroll }) {
       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center p-4">
         {isEnrolled ? (
           <button onClick={() => navigate(`/student/cursos/${curso.id}/ver`)} className="bg-white text-gray-900 px-4 py-2 rounded-xl font-bold shadow-lg hover:scale-105 transition-transform">
-            Continuar
+            {t('student.continue')}
           </button>
         ) : (
-          <button onClick={() => onEnroll(curso.id)} className="bg-blue-600 text-white px-4 py-2 rounded-xl font-bold shadow-lg hover:scale-105 transition-transform">
-            Inscribirme
+          <button onClick={() => onEnroll(curso.id)} className="bg-primary-600 text-white px-4 py-2 rounded-xl font-bold shadow-lg hover:scale-105 transition-transform">
+            {t('student.enroll')}
           </button>
         )}
       </div>
@@ -47,6 +49,7 @@ function CursoCard({ curso, isEnrolled, onEnroll }) {
 }
 
 export default function StudentDashboard() {
+  const t = useT();
   const navigate = useNavigate();
   const user = useAuthStore(s => s.user);
   const [misCursos, setMisCursos] = useState([]);
@@ -89,12 +92,12 @@ export default function StudentDashboard() {
 
   return (
     <div className="max-w-7xl mx-auto space-y-8 animate-fade-in-up">
-      <div className="bg-gradient-to-br from-blue-600 to-cyan-700 rounded-3xl p-8 text-white shadow-xl shadow-blue-500/20 relative overflow-hidden">
+      <div className="bg-gradient-to-br from-primary-600 to-primary-700 rounded-3xl p-8 text-white shadow-xl shadow-primary-500/20 relative overflow-hidden">
         <div className="absolute inset-0 opacity-20"
              style={{ backgroundImage: 'radial-gradient(circle at 20% 80%, white 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
         <div className="relative z-10">
-           <h2 className="text-3xl font-black mb-2">¡Hola, {user?.nombre?.split(' ')[0]}! 🎓</h2>
-           <p className="text-blue-100 text-sm">Continúa tu aprendizaje donde lo dejaste.</p>
+           <h2 className="text-3xl font-black mb-2">{t('student.dashboardTitle', { name: user?.nombre?.split(' ')[0] || '' })}</h2>
+           <p className="text-primary-100 text-sm">{t('student.dashboardSubtitle')}</p>
         </div>
       </div>
 
@@ -115,12 +118,12 @@ export default function StudentDashboard() {
         <div className="space-y-8">
           <div>
             <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-              <BookOpen size={20} className="text-blue-500" /> Mis Cursos
+              <BookOpen size={20} className="text-primary-500" /> {t('student.myCourses')}
             </h3>
             {misCursos.length === 0 ? (
                <div className="bg-gray-50 dark:bg-gray-900 border-2 border-dashed border-gray-200 dark:border-gray-800 rounded-2xl p-8 text-center">
                  <GraduationCap size={40} className="mx-auto text-gray-300 dark:text-gray-700 mb-3" />
-                 <p className="text-gray-500 dark:text-gray-400 font-medium">No estás inscrito en ningún curso aún.</p>
+                 <p className="text-gray-500 dark:text-gray-400 font-medium">{t('student.noCourses')}</p>
                </div>
             ) : (
                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
@@ -133,10 +136,10 @@ export default function StudentDashboard() {
 
           <div>
             <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-              <Plus size={20} className="text-emerald-500" /> Cursos Disponibles
+              <Plus size={20} className="text-emerald-500" /> {t('student.availableCourses')}
             </h3>
             {disponibles.length === 0 ? (
-               <p className="text-gray-500 dark:text-gray-400 text-sm">Ya estás inscrito en todos los cursos disponibles o no hay nuevos cursos.</p>
+               <p className="text-gray-500 dark:text-gray-400 text-sm">{t('student.noAvailable')}</p>
             ) : (
                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                  {disponibles.map(c => (

@@ -13,19 +13,20 @@ import useAuthStore from '../stores/authStore';
 import { useI18n, useT } from '../contexts/I18nContext';
 
 // ─── Constantes ───────────────────────────────────────────────────────────────
-const AVATAR_COLORS = [
-  { value: 'from-primary-500 to-primary-700',  label: 'Tema Principal'   },
-  { value: 'from-blue-500 to-cyan-600',      label: 'Azul'      },
-  { value: 'from-emerald-500 to-teal-600',   label: 'Verde'     },
-  { value: 'from-rose-500 to-pink-600',      label: 'Rosa'      },
-  { value: 'from-amber-500 to-orange-600',   label: 'Naranja'   },
-  { value: 'from-red-500 to-rose-700',       label: 'Rojo'      },
-  { value: 'from-indigo-500 to-blue-700',    label: 'Índigo'    },
-  { value: 'from-teal-500 to-cyan-600',      label: 'Teal'      },
-  { value: 'from-fuchsia-500 to-pink-700',   label: 'Fucsia'    },
-  { value: 'from-lime-500 to-green-600',     label: 'Lima'      },
-  { value: 'from-sky-500 to-blue-600',       label: 'Cielo'     },
-  { value: 'from-orange-500 to-red-600',     label: 'Fuego'     },
+// Movemos AVATAR_COLORS dentro del componente para poder usar t()
+const getAvatarColors = (t) => [
+  { value: 'from-primary-500 to-primary-700',  label: t('settings.avatarThemeMain') },
+  { value: 'from-blue-500 to-cyan-600',      label: t('settings.avatarBlue') },
+  { value: 'from-emerald-500 to-teal-600',   label: t('settings.avatarGreen') },
+  { value: 'from-rose-500 to-pink-600',      label: t('settings.avatarPink') },
+  { value: 'from-amber-500 to-orange-600',   label: t('settings.avatarOrange') },
+  { value: 'from-red-500 to-rose-700',       label: t('settings.avatarRed') },
+  { value: 'from-indigo-500 to-blue-700',    label: t('settings.avatarIndigo') },
+  { value: 'from-teal-500 to-cyan-600',      label: t('settings.avatarTeal') },
+  { value: 'from-fuchsia-500 to-pink-700',   label: t('settings.avatarFuchsia') },
+  { value: 'from-lime-500 to-green-600',     label: t('settings.avatarLime') },
+  { value: 'from-sky-500 to-blue-600',       label: t('settings.avatarSky') },
+  { value: 'from-orange-500 to-red-600',     label: t('settings.avatarFire') },
 ];
 
 const IDIOMAS = [
@@ -109,9 +110,10 @@ export default function AjustesPage() {
   const [toast, setToast] = useState(null);
 
   // Perfil
+  const avatarColorsOptions = getAvatarColors(t);
   const [nombre,      setNombre]      = useState(user?.nombre       || '');
   const [bio,         setBio]         = useState(user?.bio          || '');
-  const [avatarColor, setAvatarColor] = useState(user?.avatar_color || AVATAR_COLORS[0].value);
+  const [avatarColor, setAvatarColor] = useState(user?.avatar_color || avatarColorsOptions[0].value);
   const [savingPerfil, setSavingPerfil] = useState(false);
 
   // Notificaciones — sincronizadas con el backend
@@ -137,11 +139,11 @@ export default function AjustesPage() {
   // Estilo visual (Profesional vs Vibrante)
   const [estilo, setEstilo] = useState(() => localStorage.getItem('yc_estilo') || 'profesional');
   const ESTILOS = [
-    { value: 'profesional', label: 'Profesional (Sobrio)', colorClass: 'bg-slate-500' },
-    { value: 'vibrante', label: 'Vibrante (Moderno)', colorClass: 'bg-violet-500' },
-    { value: 'bosque', label: 'Bosque (Esmeralda)', colorClass: 'bg-emerald-500' },
-    { value: 'oceano', label: 'Océano (Profundo)', colorClass: 'bg-cyan-500' },
-    { value: 'ocaso', label: 'Ocaso (Ámbar)', colorClass: 'bg-orange-500' },
+    { value: 'profesional', label: t('settings.styleProfessional'), colorClass: 'bg-slate-500' },
+    { value: 'vibrante', label: t('settings.styleVibrant'), colorClass: 'bg-primary-500' },
+    { value: 'bosque', label: t('settings.styleForest'), colorClass: 'bg-emerald-500' },
+    { value: 'oceano', label: t('settings.styleOcean'), colorClass: 'bg-cyan-500' },
+    { value: 'ocaso', label: t('settings.styleSunset'), colorClass: 'bg-orange-500' },
   ];
 
   const showToast = (message, type = 'success') => setToast({ message, type });
@@ -151,7 +153,7 @@ export default function AjustesPage() {
     if (user) {
       setNombre(user.nombre || '');
       setBio(user.bio || '');
-      setAvatarColor(user.avatar_color || AVATAR_COLORS[0].value);
+      setAvatarColor(user.avatar_color || avatarColorsOptions[0].value);
       setNotifEmail(user.notif_email !== 0);
       setNotifPlatform(user.notif_platform !== 0);
     }
@@ -259,7 +261,7 @@ export default function AjustesPage() {
             <div className="flex-1 space-y-2">
               <p className="text-xs font-semibold text-gray-600 dark:text-gray-400">{t('settings.avatarColor')}</p>
               <div className="flex flex-wrap gap-2">
-                {AVATAR_COLORS.map(c => (
+                {avatarColorsOptions.map(c => (
                   <button key={c.value} onClick={() => setAvatarColor(c.value)} title={c.label}
                     className={`w-8 h-8 rounded-xl bg-gradient-to-br ${c.value} transition-all hover:scale-110 ${avatarColor === c.value ? 'ring-2 ring-offset-2 ring-primary-500 dark:ring-offset-gray-900 scale-110' : ''}`}
                   />
@@ -305,7 +307,7 @@ export default function AjustesPage() {
             </div>
           </Field>
           
-          <Field label="Estilo Visual">
+          <Field label={t('settings.visualStyle')}>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-1">
               {ESTILOS.map(({ value, label, colorClass }) => (
                 <button key={value} onClick={() => setEstilo(value)}
@@ -319,7 +321,7 @@ export default function AjustesPage() {
               ))}
             </div>
           </Field>
-          <p className="text-xs text-gray-400">El tema y estilo se aplican inmediatamente y se guardan de forma automática.</p>
+          <p className="text-xs text-gray-400">{t('settings.styleInfo')}</p>
         </div>
       </Section>
 
@@ -426,8 +428,13 @@ export default function AjustesPage() {
             <div>
               <p className="font-bold text-gray-900 dark:text-white">{user?.nombre}</p>
               <p className="text-xs text-gray-400">{user?.email}</p>
-              <span className={`inline-block mt-1 text-[10px] font-bold px-2 py-0.5 rounded-full ${user?.rol === 'creador' ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400' : 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'}`}>
-                {user?.rol === 'creador' ? '🎓 Creador' : '👨‍🎓 Estudiante'}
+              <span className={`inline-block mt-1 text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                user?.rol === 'superadmin' ? 'bg-fuchsia-100 dark:bg-fuchsia-900/30 text-fuchsia-600 dark:text-fuchsia-400' :
+                user?.rol === 'moderador' ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400' :
+                user?.rol === 'creador' ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400' : 
+                'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
+              }`}>
+                {t(`roles.${user?.rol || 'estudiante'}`)}
               </span>
             </div>
             <div className="ml-auto text-right">

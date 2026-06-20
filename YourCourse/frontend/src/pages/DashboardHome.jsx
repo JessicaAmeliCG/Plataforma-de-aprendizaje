@@ -10,12 +10,14 @@ import {
 } from 'lucide-react';
 import { api } from '../services/api';
 import useAuthStore from '../stores/authStore';
+import { useT } from '../contexts/I18nContext';
 
 function getInitials(name = '') {
   return name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
 }
 
 function EstadoBadge({ estado }) {
+  const t = useT();
   const map = {
     publicado: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
     borrador:  'bg-amber-100  text-amber-700  dark:bg-amber-900/30  dark:text-amber-400',
@@ -23,7 +25,7 @@ function EstadoBadge({ estado }) {
   };
   return (
     <span className={`absolute top-3 left-3 text-xs font-semibold px-2 py-0.5 rounded-full ${map[estado]}`}>
-      {estado.charAt(0).toUpperCase() + estado.slice(1)}
+      {estado === 'publicado' ? t('creator.published') : estado === 'borrador' ? t('creator.draft') : t('creator.archived')}
     </span>
   );
 }
@@ -31,6 +33,7 @@ function EstadoBadge({ estado }) {
 function CursoCard({ curso, index, onDelete }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
+  const t = useT();
 
   return (
     <div
@@ -50,8 +53,8 @@ function CursoCard({ curso, index, onDelete }) {
           {menuOpen && (
             <div className="absolute right-0 mt-1 w-40 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-2xl overflow-hidden z-30">
               {[
-                { label: 'Gestionar',   Icon: Edit3, action: () => navigate(`/creator/cursos/${curso.id}`) },
-                { label: 'Eliminar',    Icon: Trash2, danger: true, action: () => { onDelete(curso.id); setMenuOpen(false); } },
+                { label: t('creator.manage'),   Icon: Edit3, action: () => navigate(`/creator/cursos/${curso.id}`) },
+                { label: t('creator.delete'),    Icon: Trash2, danger: true, action: () => { onDelete(curso.id); setMenuOpen(false); } },
               ].map(({ label, Icon, action, danger }) => (
                 <button key={label} onClick={() => { action(); setMenuOpen(false); }}
                   className={`w-full flex items-center gap-2 px-3 py-2 text-sm transition-colors ${
@@ -72,14 +75,14 @@ function CursoCard({ curso, index, onDelete }) {
         </h3>
         <div className="flex items-center gap-3 text-xs text-gray-400 dark:text-gray-500">
           <span className="flex items-center gap-1"><Users size={11} />{(curso.estudiantes || 0).toLocaleString()}</span>
-          {curso.modulos_count > 0 && <span className="flex items-center gap-1"><Layers size={11} />{curso.modulos_count} mód.</span>}
+          {curso.modulos_count > 0 && <span className="flex items-center gap-1"><Layers size={11} />{t('creator.modulesShort', { n: curso.modulos_count })}</span>}
           {curso.duracion && <span className="flex items-center gap-1"><Clock size={11} />{curso.duracion}</span>}
         </div>
         <div className="flex items-center justify-between pt-2 mt-auto border-t border-gray-100 dark:border-gray-800">
-          {curso.modelo_negocio === 'gratis'      && <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">GRATIS</span>}
+          {curso.modelo_negocio === 'gratis'      && <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">{t('creator.free')}</span>}
           {curso.modelo_negocio === 'pago_unico'  && <span className="text-sm font-bold text-gray-900 dark:text-white">${Number(curso.precio).toLocaleString()} MXN</span>}
           {curso.modelo_negocio === 'suscripcion' && <span className="text-xs font-bold text-primary-600 dark:text-primary-400">${Number(curso.precio).toLocaleString()}/mes</span>}
-          <span className="text-xs text-gray-400 dark:text-gray-500">{curso.modulos_count || 0} módulos</span>
+          <span className="text-xs text-gray-400 dark:text-gray-500">{t('creator.modulesCount', { n: curso.modulos_count || 0 })}</span>
         </div>
       </div>
     </div>
@@ -88,6 +91,7 @@ function CursoCard({ curso, index, onDelete }) {
 
 export default function DashboardHome() {
   const navigate  = useNavigate();
+  const t         = useT();
   const user      = useAuthStore(s => s.user);
   const [cursos,  setCursos]  = useState([]);
   const [stats,   setStats]   = useState({ cursos: 0, estudiantes: 0 });
@@ -135,11 +139,11 @@ export default function DashboardHome() {
     : cursos.filter(c => c.estado === filtro);
 
   const STAT_CARDS = [
-    { label: 'Cursos totales',   value: stats.cursos,      Icon: BookOpen,    from: 'from-primary-500', to: 'to-primary-600', delta: `${stats.publicados || 0} publicados` },
-    { label: 'Estudiantes',      value: stats.estudiantes, Icon: Users,       from: 'from-blue-500',   to: 'to-cyan-500',   delta: 'Registrados en la plataforma' },
-    { label: 'Inscripciones',    value: stats.inscritos,   Icon: Award,       from: 'from-emerald-500',to: 'to-teal-500',   delta: 'Total de inscripciones' },
-    { label: 'Ingresos aprox.',  value: `$${cursos.filter(c=>c.modelo_negocio!=='gratis').reduce((a,c)=>a+(c.precio||0)*(c.estudiantes||0),0).toLocaleString()}`,
-      Icon: DollarSign, from: 'from-amber-400', to: 'to-orange-500', delta: 'Estimado acumulado' },
+    { label: t('creator.totalCourses'),   value: stats.cursos,      Icon: BookOpen,    from: 'from-primary-500', to: 'to-primary-600', delta: t('creator.publishedCount', { n: stats.publicados || 0 }) },
+    { label: t('creator.students'),      value: stats.estudiantes, Icon: Users,       from: 'from-blue-500',   to: 'to-cyan-500',   delta: t('creator.registeredPlatform') },
+    { label: t('creator.enrollments'),    value: stats.inscritos,   Icon: Award,       from: 'from-emerald-500',to: 'to-teal-500',   delta: t('creator.totalEnrollments') },
+    { label: t('creator.approxRevenue'),  value: `$${cursos.filter(c=>c.modelo_negocio!=='gratis').reduce((a,c)=>a+(c.precio||0)*(c.estudiantes||0),0).toLocaleString()}`,
+      Icon: DollarSign, from: 'from-amber-400', to: 'to-orange-500', delta: t('creator.estimatedAccumulated') },
   ];
 
   return (
@@ -149,16 +153,16 @@ export default function DashboardHome() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-fade-in-up">
         <div>
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-            ¡Bienvenida, {user?.nombre?.split(' ')[0] || 'Creador'}! 👋
+            {t('creator.welcome', { name: user?.nombre?.split(' ')[0] || '' })}
           </h2>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Aquí está el resumen de tu academia hoy.</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{t('creator.summaryToday')}</p>
         </div>
         <button
           id="btn-crear-curso"
           onClick={() => navigate('/creator/cursos/nuevo')}
           className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-primary-600 to-primary-600 hover:from-primary-500 hover:to-primary-500 text-white font-semibold text-sm shadow-lg shadow-primary-500/30 hover:shadow-primary-500/50 transition-all active:scale-95 whitespace-nowrap"
         >
-          <Plus size={17} /> Crear Nuevo Curso
+          <Plus size={17} /> {t('creator.createNewCourse')}
         </button>
       </div>
 
@@ -198,7 +202,7 @@ export default function DashboardHome() {
         <div className="xl:col-span-2 space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="text-base font-bold text-gray-900 dark:text-white flex items-center gap-2">
-              <BookOpen size={18} className="text-primary-500" /> Mis Cursos
+              <BookOpen size={18} className="text-primary-500" /> {t('creator.myCourses')}
             </h3>
             <div className="flex gap-1 bg-gray-100 dark:bg-gray-800 p-1 rounded-xl">
               {['todos','publicado','borrador'].map(f => (
@@ -208,7 +212,7 @@ export default function DashboardHome() {
                       ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
                       : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
                   }`}>
-                  {f === 'todos' ? 'Todos' : f.charAt(0).toUpperCase() + f.slice(1)}
+                  {f === 'todos' ? t('creator.all') : f === 'publicado' ? t('creator.published') : t('creator.draft')}
                 </button>
               ))}
             </div>
@@ -231,7 +235,7 @@ export default function DashboardHome() {
                 <div className="p-4 rounded-2xl bg-gray-100 dark:bg-gray-800 group-hover:bg-primary-100 dark:group-hover:bg-primary-900/20 transition-colors">
                   <Plus size={26} />
                 </div>
-                <span className="text-sm font-semibold">Nuevo Curso</span>
+                <span className="text-sm font-semibold">{t('creator.newCourse')}</span>
               </button>
             </div>
           )}
@@ -240,14 +244,14 @@ export default function DashboardHome() {
         {/* Accesos rápidos */}
         <div className="space-y-4 animate-fade-in-up" style={{ animationDelay: '400ms' }}>
           <h3 className="text-base font-bold text-gray-900 dark:text-white flex items-center gap-2">
-            <Zap size={18} className="text-primary-500" /> Accesos rápidos
+            <Zap size={18} className="text-primary-500" /> {t('creator.quickAccess')}
           </h3>
 
           <div className="space-y-3">
             {[
-              { label: 'Ver estudiantes',   sub: `${stats.estudiantes} registrados`, icon: Users,    to: '/creator/estudiantes', color: 'text-blue-500' },
-              { label: 'Crear nuevo curso', sub: 'Añade contenido',                  icon: Plus,     to: '/creator/cursos/nuevo', color: 'text-primary-500' },
-              { label: 'Ver analíticas',    sub: 'Estadísticas detalladas',          icon: TrendingUp,to: '/creator/analiticas', color: 'text-emerald-500' },
+              { label: t('creator.viewStudents'),   sub: t('creator.registeredCount', { n: stats.estudiantes }), icon: Users,    to: '/creator/estudiantes', color: 'text-blue-500' },
+              { label: t('creator.createNewCourseItem'), sub: t('creator.addContent'),                  icon: Plus,     to: '/creator/cursos/nuevo', color: 'text-primary-500' },
+              { label: t('creator.viewAnalytics'),    sub: t('creator.detailedStats'),          icon: TrendingUp,to: '/creator/analiticas', color: 'text-emerald-500' },
             ].map(item => (
               <button key={item.label} onClick={() => navigate(item.to)}
                 className="w-full flex items-center gap-4 p-4 bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm hover:shadow-md transition-all hover:-translate-y-0.5 text-left">
@@ -265,12 +269,12 @@ export default function DashboardHome() {
 
           {/* XP card */}
           <div className="bg-gradient-to-br from-primary-600 to-primary-700 rounded-2xl p-5 text-white shadow-lg shadow-primary-500/20">
-            <p className="text-xs font-semibold text-primary-200 mb-1">Tu academia</p>
-            <p className="text-3xl font-black">{user?.nombre || 'Creador'}</p>
+            <p className="text-xs font-semibold text-primary-200 mb-1">{t('creator.yourAcademy')}</p>
+            <p className="text-3xl font-black">{user?.nombre || ''}</p>
             <p className="text-xs text-primary-200 mt-1">{user?.email}</p>
             <div className="mt-4 flex items-center gap-2">
               <Star size={14} className="fill-primary-200 text-primary-200" />
-              <span className="text-xs font-semibold">Creador verificado</span>
+              <span className="text-xs font-semibold">{t(`roles.${user?.rol || 'creador'}`)}</span>
             </div>
           </div>
         </div>

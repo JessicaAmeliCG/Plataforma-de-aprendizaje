@@ -35,7 +35,7 @@ export default function CreatorLayout() {
   const location  = useLocation();
   const user      = useAuthStore(s => s.user);
   const logout    = useAuthStore(s => s.logout);
-  const displayUser = user || { nombre: 'Creador', email: '', avatar_color: 'from-primary-500 to-primary-700' };
+  const displayUser = user || { nombre: t('creator.yourAcademy'), email: '', avatar_color: 'from-primary-500 to-primary-700' };
 
   // Nav items con traducción reactiva al idioma
   const NAV_ITEMS = [

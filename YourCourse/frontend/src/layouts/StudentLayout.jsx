@@ -29,7 +29,7 @@ export default function StudentLayout() {
   const location  = useLocation();
   const user      = useAuthStore(s => s.user);
   const logout    = useAuthStore(s => s.logout);
-  const displayUser = user || { nombre: 'Estudiante', email: '', avatar_color: 'from-blue-500 to-cyan-600' };
+  const displayUser = user || { nombre: 'Estudiante', email: '', avatar_color: 'from-primary-500 to-primary-600' };
 
   const NAV_ITEMS = [
     { to: '/student/dashboard',   label: t('nav.dashboard'),  Icon: LayoutDashboard },
@@ -79,7 +79,7 @@ export default function StudentLayout() {
 
         {/* Logo */}
         <div className="flex items-center h-16 border-b border-gray-200 dark:border-gray-800 px-4 gap-3 overflow-hidden">
-          <GraduationCap className="text-blue-600 dark:text-blue-400 shrink-0" size={24} />
+          <GraduationCap className="text-primary-600 dark:text-primary-400 shrink-0" size={24} />
           <span className={`font-bold text-gray-900 dark:text-white text-lg whitespace-nowrap transition-all duration-300 ${collapsed ? 'opacity-0 w-0' : 'opacity-100 w-auto'}`}>
             YourCourse
           </span>
@@ -96,7 +96,7 @@ export default function StudentLayout() {
                 flex items-center gap-3 px-3 py-2.5 rounded-xl
                 text-sm font-medium transition-all duration-150 overflow-hidden
                 ${isActive
-                  ? 'bg-blue-600 text-white shadow-sm shadow-blue-500/25'
+                  ? 'bg-primary-600 text-white shadow-sm shadow-primary-500/25'
                   : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white'
                 }
               `}
@@ -114,7 +114,7 @@ export default function StudentLayout() {
         <div className="p-2 border-t border-gray-200 dark:border-gray-800 space-y-1">
           {!collapsed && (
             <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-gray-50 dark:bg-gray-800/50">
-              <div className={`w-7 h-7 rounded-full shrink-0 bg-gradient-to-br ${displayUser.avatar_color || 'from-blue-500 to-cyan-600'} flex items-center justify-center text-white font-bold text-xs`}>
+              <div className={`w-7 h-7 rounded-full shrink-0 bg-gradient-to-br ${displayUser.avatar_color || 'from-primary-500 to-primary-600'} flex items-center justify-center text-white font-bold text-xs`}>
                 {getInitials(displayUser.nombre)}
               </div>
               <div className="min-w-0">
@@ -139,7 +139,7 @@ export default function StudentLayout() {
         <button
           onClick={() => setCollapsed(prev => !prev)}
           aria-label={collapsed ? 'Expandir sidebar' : 'Colapsar sidebar'}
-          className="hidden lg:flex absolute -right-3 top-[72px] w-6 h-6 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm items-center justify-center text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-300 dark:hover:border-blue-700 transition-all duration-200 z-10"
+          className="hidden lg:flex absolute -right-3 top-[72px] w-6 h-6 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm items-center justify-center text-gray-500 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:border-primary-300 dark:hover:border-primary-700 transition-all duration-200 z-10"
         >
           {collapsed ? <ChevronRight size={13} /> : <ChevronLeft size={13} />}
         </button>
@@ -179,7 +179,7 @@ export default function StudentLayout() {
             </button>
             <div
               onClick={() => navigate('/student/ajustes')}
-              className={`w-9 h-9 rounded-xl bg-gradient-to-br ${displayUser.avatar_color || 'from-blue-500 to-cyan-600'} flex items-center justify-center text-white font-bold text-sm cursor-pointer select-none ring-2 ring-blue-400/20 hover:ring-blue-400/50 transition-all`}
+              className={`w-9 h-9 rounded-xl bg-gradient-to-br ${displayUser.avatar_color || 'from-primary-500 to-primary-600'} flex items-center justify-center text-white font-bold text-sm cursor-pointer select-none ring-2 ring-primary-400/20 hover:ring-primary-400/50 transition-all`}
               title={t('nav.settings')}
             >
               {getInitials(displayUser.nombre)}

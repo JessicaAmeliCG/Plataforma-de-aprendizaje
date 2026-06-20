@@ -10,17 +10,19 @@ import {
 } from 'lucide-react';
 import { api } from '../services/api';
 import useAuthStore from '../stores/authStore';
+import { useT } from '../contexts/I18nContext';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function getInitials(name = '') {
   return name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
 }
-function timeAgo(dateStr) {
+function TimeAgo({ dateStr }) {
+  const t = useT();
   const diff = (Date.now() - new Date(dateStr).getTime()) / 1000;
-  if (diff < 60)    return 'Hace un momento';
-  if (diff < 3600)  return `Hace ${Math.floor(diff / 60)} min`;
-  if (diff < 86400) return `Hace ${Math.floor(diff / 3600)}h`;
-  return `Hace ${Math.floor(diff / 86400)} días`;
+  if (diff < 60)    return t('creator.justNow');
+  if (diff < 3600)  return t('creator.minsAgo').replace('{m}', Math.floor(diff / 60));
+  if (diff < 86400) return t('creator.hoursAgo').replace('{h}', Math.floor(diff / 3600));
+  return t('creator.daysAgo').replace('{d}', Math.floor(diff / 86400));
 }
 
 // ─── Estrellas ────────────────────────────────────────────────────────────────
@@ -54,6 +56,7 @@ function Stars({ rating, interactive = false, onChange }) {
 
 // ─── Avatar del autor ─────────────────────────────────────────────────────────
 function AutorAvatar({ nombre, avatarColor, rol }) {
+  const t = useT();
   return (
     <div className="flex items-center gap-2.5 shrink-0">
       <div className={`w-9 h-9 rounded-xl bg-gradient-to-br ${avatarColor || 'from-primary-500 to-primary-700'} flex items-center justify-center text-white font-bold text-xs shrink-0`}>
@@ -62,7 +65,7 @@ function AutorAvatar({ nombre, avatarColor, rol }) {
       <div>
         <p className="text-sm font-semibold text-gray-900 dark:text-white leading-tight">{nombre}</p>
         {rol === 'creador' && (
-          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400">Creador</span>
+          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400">{t('creator.creatorRole')}</span>
         )}
       </div>
     </div>
@@ -71,6 +74,7 @@ function AutorAvatar({ nombre, avatarColor, rol }) {
 
 // ─── Tarjeta de reseña ────────────────────────────────────────────────────────
 function ResenaCard({ post, onDelete, onReply, currentUser }) {
+  const t = useT();
   const [repliesOpen, setRepliesOpen] = useState(false);
   const [replyText, setReplyText]     = useState('');
   const [sending, setSending]         = useState(false);
@@ -94,7 +98,7 @@ function ResenaCard({ post, onDelete, onReply, currentUser }) {
         <AutorAvatar nombre={post.autor_nombre} avatarColor={post.autor_color} rol={post.autor_rol} />
         <div className="flex items-center gap-3 shrink-0">
           <Stars rating={post.rating} />
-          <span className="text-xs text-gray-400">{timeAgo(post.created_at)}</span>
+          <span className="text-xs text-gray-400"><TimeAgo dateStr={post.created_at} /></span>
           {(currentUser?.id === post.usuario_id || currentUser?.rol === 'creador') && (
             <button onClick={() => onDelete(post.id)} className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"><Trash2 size={14} /></button>
           )}
@@ -109,7 +113,7 @@ function ResenaCard({ post, onDelete, onReply, currentUser }) {
       <div className="border-t border-gray-100 dark:border-gray-800 pt-3 space-y-3">
         {post.respuestas.length > 0 && (
           <button onClick={() => setRepliesOpen(p => !p)} className="flex items-center gap-1.5 text-xs font-semibold text-gray-500 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
-            <MessageSquare size={13} /> {post.respuestas.length} respuesta{post.respuestas.length !== 1 ? 's' : ''}
+            <MessageSquare size={13} /> {post.respuestas.length} {post.respuestas.length !== 1 ? t('creator.repliesCountPlural') : t('creator.repliesCount')}
             {repliesOpen ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
           </button>
         )}
@@ -124,8 +128,8 @@ function ResenaCard({ post, onDelete, onReply, currentUser }) {
                 <div className="flex-1 bg-gray-50 dark:bg-gray-800 rounded-xl px-3 py-2">
                   <div className="flex items-center gap-2 mb-1">
                     <span className="text-xs font-semibold text-gray-900 dark:text-white">{r.autor_nombre}</span>
-                    {r.autor_rol === 'creador' && <span className="text-[9px] font-bold px-1 py-0.5 rounded-full bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400">Creador</span>}
-                    <span className="text-[11px] text-gray-400 ml-auto">{timeAgo(r.created_at)}</span>
+                    {r.autor_rol === 'creador' && <span className="text-[9px] font-bold px-1 py-0.5 rounded-full bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400">{t('creator.creatorRole')}</span>}
+                    <span className="text-[11px] text-gray-400 ml-auto"><TimeAgo dateStr={r.created_at} /></span>
                   </div>
                   <p className="text-xs text-gray-600 dark:text-gray-300">{r.contenido}</p>
                 </div>
@@ -140,7 +144,7 @@ function ResenaCard({ post, onDelete, onReply, currentUser }) {
             value={replyText}
             onChange={e => setReplyText(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && !e.shiftKey && handleReply()}
-            placeholder="Responder..."
+            placeholder={t('creator.replyPlaceholder')}
             className="flex-1 text-xs px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 transition"
           />
           <button onClick={handleReply} disabled={sending || !replyText.trim()}
@@ -155,6 +159,7 @@ function ResenaCard({ post, onDelete, onReply, currentUser }) {
 
 // ─── Tarjeta del foro ─────────────────────────────────────────────────────────
 function ForoCard({ post, onDelete, onReply, currentUser }) {
+  const t = useT();
   const [repliesOpen, setRepliesOpen] = useState(true);
   const [replyText, setReplyText]     = useState('');
   const [sending, setSending]         = useState(false);
@@ -175,7 +180,7 @@ function ForoCard({ post, onDelete, onReply, currentUser }) {
       <div className="flex items-start justify-between gap-3">
         <AutorAvatar nombre={post.autor_nombre} avatarColor={post.autor_color} rol={post.autor_rol} />
         <div className="flex items-center gap-2 shrink-0">
-          <span className="text-xs text-gray-400">{timeAgo(post.created_at)}</span>
+          <span className="text-xs text-gray-400"><TimeAgo dateStr={post.created_at} /></span>
           {(currentUser?.id === post.usuario_id || currentUser?.rol === 'creador') && (
             <button onClick={() => onDelete(post.id)} className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"><Trash2 size={14} /></button>
           )}
@@ -183,7 +188,7 @@ function ForoCard({ post, onDelete, onReply, currentUser }) {
       </div>
 
       <div>
-        <h4 className="font-bold text-gray-900 dark:text-white">{post.titulo || 'Sin título'}</h4>
+        <h4 className="font-bold text-gray-900 dark:text-white">{post.titulo || t('creator.noTitle')}</h4>
         <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed mt-1">{post.contenido}</p>
       </div>
 
@@ -201,7 +206,7 @@ function ForoCard({ post, onDelete, onReply, currentUser }) {
       {/* Curso vinculado */}
       {post.curso_titulo && (
         <div className="flex items-center gap-2 text-xs text-primary-600 dark:text-primary-400 font-medium">
-          <BookOpen size={13} /><span>Relacionado con: {post.curso_titulo}</span>
+          <BookOpen size={13} /><span>{t('creator.relatedTo')} {post.curso_titulo}</span>
         </div>
       )}
 
@@ -209,7 +214,7 @@ function ForoCard({ post, onDelete, onReply, currentUser }) {
       <div className="border-t border-gray-100 dark:border-gray-800 pt-3 space-y-3">
         {post.respuestas.length > 0 && (
           <button onClick={() => setRepliesOpen(p => !p)} className="flex items-center gap-1.5 text-xs font-semibold text-gray-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
-            <MessageSquare size={13} /> {post.respuestas.length} respuesta{post.respuestas.length !== 1 ? 's' : ''}
+            <MessageSquare size={13} /> {post.respuestas.length} {post.respuestas.length !== 1 ? t('creator.repliesCountPlural') : t('creator.repliesCount')}
             {repliesOpen ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
           </button>
         )}
@@ -222,8 +227,8 @@ function ForoCard({ post, onDelete, onReply, currentUser }) {
                 <div className="flex-1 bg-gray-50 dark:bg-gray-800 rounded-xl px-3 py-2">
                   <div className="flex items-center gap-2 mb-1">
                     <span className="text-xs font-semibold text-gray-900 dark:text-white">{r.autor_nombre}</span>
-                    {r.autor_rol === 'creador' && <span className="text-[9px] font-bold px-1 py-0.5 rounded-full bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400">Creador</span>}
-                    <span className="text-[11px] text-gray-400 ml-auto">{timeAgo(r.created_at)}</span>
+                    {r.autor_rol === 'creador' && <span className="text-[9px] font-bold px-1 py-0.5 rounded-full bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400">{t('creator.creatorRole')}</span>}
+                    <span className="text-[11px] text-gray-400 ml-auto"><TimeAgo dateStr={r.created_at} /></span>
                   </div>
                   <p className="text-xs text-gray-600 dark:text-gray-300">{r.contenido}</p>
                 </div>
@@ -234,7 +239,7 @@ function ForoCard({ post, onDelete, onReply, currentUser }) {
 
         <div className="flex items-center gap-2">
           <input value={replyText} onChange={e => setReplyText(e.target.value)} onKeyDown={e => e.key === 'Enter' && !e.shiftKey && handleReply()}
-            placeholder="Responder a esta discusión..."
+            placeholder={t('creator.replyDiscussionPlaceholder')}
             className="flex-1 text-xs px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition" />
           <button onClick={handleReply} disabled={sending || !replyText.trim()} className="p-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white transition-all active:scale-95">
             {sending ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
@@ -247,6 +252,7 @@ function ForoCard({ post, onDelete, onReply, currentUser }) {
 
 // ─── Formulario nueva reseña ──────────────────────────────────────────────────
 function NuevaResenaForm({ onSuccess }) {
+  const t = useT();
   const [titulo, setTitulo]       = useState('');
   const [contenido, setContenido] = useState('');
   const [rating, setRating]       = useState(5);
@@ -255,7 +261,7 @@ function NuevaResenaForm({ onSuccess }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!contenido.trim()) { setError('El contenido es obligatorio.'); return; }
+    if (!contenido.trim()) { setError(t('creator.contentRequired')); return; }
     setSending(true); setError('');
     try {
       const res = await api.post('/comunidad', { tipo: 'resena', titulo, contenido, rating });
@@ -267,19 +273,19 @@ function NuevaResenaForm({ onSuccess }) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-5">
-      <h4 className="font-bold text-gray-900 dark:text-white flex items-center gap-2"><Star size={16} className="text-amber-400 fill-amber-400" /> Nueva Reseña</h4>
+      <h4 className="font-bold text-gray-900 dark:text-white flex items-center gap-2"><Star size={16} className="text-amber-400 fill-amber-400" /> {t('creator.newReview')}</h4>
       <div>
-        <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">Tu calificación</label>
+        <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">{t('creator.yourRating')}</label>
         <Stars rating={rating} interactive onChange={setRating} />
       </div>
-      <input type="text" value={titulo} onChange={e => setTitulo(e.target.value)} placeholder="Título de tu reseña (opcional)" maxLength={100}
+      <input type="text" value={titulo} onChange={e => setTitulo(e.target.value)} placeholder={t('creator.reviewTitleEx')} maxLength={100}
         className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-400 transition" />
-      <textarea value={contenido} onChange={e => setContenido(e.target.value)} placeholder="Comparte tu experiencia con la plataforma..." rows={3} maxLength={500}
+      <textarea value={contenido} onChange={e => setContenido(e.target.value)} placeholder={t('creator.reviewDescEx')} rows={3} maxLength={500}
         className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-400 transition resize-none" />
       {error && <p className="text-xs text-red-500 flex items-center gap-1"><AlertCircle size={12} />{error}</p>}
       <button type="submit" disabled={sending || !contenido.trim()}
         className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-300 hover:to-orange-400 disabled:opacity-50 text-white font-semibold text-sm shadow-lg shadow-amber-500/20 transition-all active:scale-95">
-        {sending ? <Loader2 size={15} className="animate-spin" /> : <Send size={15} />} Publicar reseña
+        {sending ? <Loader2 size={15} className="animate-spin" /> : <Send size={15} />} {t('creator.publishReview')}
       </button>
     </form>
   );
@@ -287,6 +293,7 @@ function NuevaResenaForm({ onSuccess }) {
 
 // ─── Formulario nueva recomendación/foro ─────────────────────────────────────
 function NuevaRecomendacionForm({ onSuccess }) {
+  const t = useT();
   const [titulo, setTitulo]       = useState('');
   const [contenido, setContenido] = useState('');
   const [tags, setTags]           = useState('');
@@ -295,7 +302,7 @@ function NuevaRecomendacionForm({ onSuccess }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!titulo.trim() || !contenido.trim()) { setError('Título y contenido son obligatorios.'); return; }
+    if (!titulo.trim() || !contenido.trim()) { setError(t('creator.titleContentRequired')); return; }
     setSending(true); setError('');
     try {
       const tagsArr = tags.split(',').map(t => t.trim()).filter(Boolean);
@@ -308,17 +315,17 @@ function NuevaRecomendacionForm({ onSuccess }) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-5">
-      <h4 className="font-bold text-gray-900 dark:text-white flex items-center gap-2"><MessageSquare size={16} className="text-indigo-500" /> Nueva Discusión</h4>
-      <input type="text" value={titulo} onChange={e => setTitulo(e.target.value)} placeholder="Título de tu pregunta o recomendación *" maxLength={120}
+      <h4 className="font-bold text-gray-900 dark:text-white flex items-center gap-2"><MessageSquare size={16} className="text-indigo-500" /> {t('creator.newDiscussion')}</h4>
+      <input type="text" value={titulo} onChange={e => setTitulo(e.target.value)} placeholder={t('creator.discussionTitleEx')} maxLength={120}
         className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition" />
-      <textarea value={contenido} onChange={e => setContenido(e.target.value)} placeholder="Describe tu problema o recomendación..." rows={3} maxLength={800}
+      <textarea value={contenido} onChange={e => setContenido(e.target.value)} placeholder={t('creator.discussionDescEx')} rows={3} maxLength={800}
         className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition resize-none" />
-      <input type="text" value={tags} onChange={e => setTags(e.target.value)} placeholder="Tags: React, Docker, SQL (separados por comas)" maxLength={100}
+      <input type="text" value={tags} onChange={e => setTags(e.target.value)} placeholder={t('creator.tagsEx')} maxLength={100}
         className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition" />
       {error && <p className="text-xs text-red-500 flex items-center gap-1"><AlertCircle size={12} />{error}</p>}
       <button type="submit" disabled={sending || !titulo.trim() || !contenido.trim()}
         className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-primary-600 hover:from-indigo-500 hover:to-primary-500 disabled:opacity-50 text-white font-semibold text-sm shadow-lg shadow-indigo-500/20 transition-all active:scale-95">
-        {sending ? <Loader2 size={15} className="animate-spin" /> : <Send size={15} />} Publicar
+        {sending ? <Loader2 size={15} className="animate-spin" /> : <Send size={15} />} {t('creator.publishBtn')}
       </button>
     </form>
   );
@@ -326,6 +333,7 @@ function NuevaRecomendacionForm({ onSuccess }) {
 
 // ─── Página principal ─────────────────────────────────────────────────────────
 export default function ComunidadPage() {
+  const t = useT();
   const currentUser = useAuthStore(s => s.user);
   const [tab,     setTab]     = useState('resenas');
   const [posts,   setPosts]   = useState([]);
@@ -353,7 +361,7 @@ export default function ComunidadPage() {
     : '—';
 
   const handleDelete = async (postId) => {
-    if (!confirm('¿Eliminar esta publicación?')) return;
+    if (!confirm(t('creator.deletePostConfirm'))) return;
     try {
       await api.delete(`/comunidad/${postId}`);
       setPosts(prev => prev.filter(p => p.id !== postId));
@@ -378,13 +386,13 @@ export default function ComunidadPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-            <MessageSquare size={24} className="text-indigo-500" /> Comunidad
+            <MessageSquare size={24} className="text-indigo-500" /> {t('creator.communityTitle')}
           </h2>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Reseñas de la plataforma y foro de recomendaciones entre estudiantes.</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{t('creator.communityDesc')}</p>
         </div>
         <button onClick={() => setShowForm(p => !p)}
           className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-primary-600 hover:from-indigo-500 hover:to-primary-500 text-white font-semibold text-sm shadow-lg shadow-indigo-500/25 transition-all active:scale-95 whitespace-nowrap">
-          <Plus size={17} /> {showForm ? 'Cancelar' : 'Nueva publicación'}
+          <Plus size={17} /> {showForm ? t('creator.cancelBtn') : t('creator.newPostBtn')}
         </button>
       </div>
 
@@ -392,9 +400,9 @@ export default function ComunidadPage() {
       {!loading && (
         <div className="grid grid-cols-3 gap-3">
           {[
-            { label: 'Reseñas',         value: resenas.length,         color: 'text-amber-500', bg: 'bg-amber-50 dark:bg-amber-900/10' },
-            { label: 'Calificación avg', value: avgRating,              color: 'text-orange-500', bg: 'bg-orange-50 dark:bg-orange-900/10' },
-            { label: 'Discusiones',      value: recomendaciones.length,  color: 'text-indigo-500', bg: 'bg-indigo-50 dark:bg-indigo-900/10' },
+            { label: t('creator.reviewsTab'),         value: resenas.length,         color: 'text-amber-500', bg: 'bg-amber-50 dark:bg-amber-900/10' },
+            { label: t('creator.avgRatingTab'), value: avgRating,              color: 'text-orange-500', bg: 'bg-orange-50 dark:bg-orange-900/10' },
+            { label: t('creator.discussionsTab'),      value: recomendaciones.length,  color: 'text-indigo-500', bg: 'bg-indigo-50 dark:bg-indigo-900/10' },
           ].map(s => (
             <div key={s.label} className={`${s.bg} rounded-2xl p-4 text-center`}>
               <p className={`text-2xl font-black ${s.color}`}>{s.value}</p>
@@ -407,8 +415,8 @@ export default function ComunidadPage() {
       {/* Tabs */}
       <div className="flex gap-1 bg-gray-100 dark:bg-gray-800 p-1 rounded-2xl w-fit">
         {[
-          { key: 'resenas',         label: 'Reseñas',           count: resenas.length },
-          { key: 'recomendaciones', label: 'Foro / Discusiones', count: recomendaciones.length },
+          { key: 'resenas',         label: t('creator.reviewsTab'),           count: resenas.length },
+          { key: 'recomendaciones', label: t('creator.forumDiscussionsTab'), count: recomendaciones.length },
         ].map(t => (
           <button key={t.key} onClick={() => setTab(t.key)}
             className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
@@ -433,7 +441,7 @@ export default function ComunidadPage() {
       {error && (
         <div className="flex items-center gap-2 p-4 rounded-2xl bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm">
           <AlertCircle size={16} />{error}
-          <button onClick={fetchPosts} className="ml-auto underline text-xs">Reintentar</button>
+          <button onClick={fetchPosts} className="ml-auto underline text-xs">{t('creator.retry')}</button>
         </div>
       )}
 
@@ -448,12 +456,12 @@ export default function ComunidadPage() {
             <GraduationCap size={28} className="text-gray-400" />
           </div>
           <p className="font-semibold text-gray-600 dark:text-gray-400">
-            {tab === 'resenas' ? 'Aún no hay reseñas' : 'Aún no hay discusiones'}
+            {tab === 'resenas' ? t('creator.noReviewsYet') : t('creator.noDiscussionsYet')}
           </p>
           <p className="text-sm text-gray-400">
-            {tab === 'resenas' ? 'Los estudiantes podrán calificar y opinar sobre la plataforma.' : 'Los estudiantes podrán hacer preguntas y recomendaciones aquí.'}
+            {tab === 'resenas' ? t('creator.studentsWillRate') : t('creator.studentsWillAsk')}
           </p>
-          <button onClick={() => setShowForm(true)} className="text-sm font-semibold text-indigo-500 hover:underline">Publica el primero →</button>
+          <button onClick={() => setShowForm(true)} className="text-sm font-semibold text-indigo-500 hover:underline">{t('creator.publishFirst')}</button>
         </div>
       ) : (
         <div className="space-y-4">

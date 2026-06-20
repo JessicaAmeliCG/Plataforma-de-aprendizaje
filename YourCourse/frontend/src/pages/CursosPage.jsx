@@ -10,18 +10,19 @@ import {
   Video, GraduationCap, TrendingUp,
 } from 'lucide-react';
 import { api } from '../services/api';
+import { useT } from '../contexts/I18nContext';
 
 // ─── Badge de estado ──────────────────────────────────────────────────────────
 function EstadoBadge({ estado }) {
+  const t = useT();
   const map = {
     publicado: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
     borrador:  'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
     archivado: 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400',
   };
-  const labels = { publicado: 'Publicado', borrador: 'Borrador', archivado: 'Archivado' };
   return (
     <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${map[estado] || map.borrador}`}>
-      {labels[estado] || estado}
+      {estado === 'publicado' ? t('creator.published') : estado === 'borrador' ? t('creator.draft') : t('creator.archived')}
     </span>
   );
 }
@@ -30,6 +31,7 @@ function EstadoBadge({ estado }) {
 function CursoCard({ curso, index, onDelete }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
+  const t = useT();
 
   return (
     <div
@@ -64,12 +66,12 @@ function CursoCard({ curso, index, onDelete }) {
             <div className="absolute right-0 mt-1 w-44 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-2xl overflow-hidden z-30">
               {[
                 {
-                  label: 'Ver y gestionar',
+                  label: t('creator.viewManage'),
                   Icon: Eye,
                   action: () => navigate(`/creator/cursos/${curso.id}`),
                 },
                 {
-                  label: 'Eliminar',
+                  label: t('creator.delete'),
                   Icon: Trash2,
                   danger: true,
                   action: () => { onDelete(curso.id); setMenuOpen(false); },
@@ -106,16 +108,16 @@ function CursoCard({ curso, index, onDelete }) {
           </p>
         )}
         <div className="flex flex-wrap items-center gap-3 text-xs text-gray-400 dark:text-gray-500 mt-1">
-          <span className="flex items-center gap-1"><Users size={11} />{(curso.estudiantes || 0)} alumnos</span>
-          {curso.modulos_count > 0 && <span className="flex items-center gap-1"><Layers size={11} />{curso.modulos_count} módulos</span>}
+          <span className="flex items-center gap-1"><Users size={11} />{(curso.estudiantes || 0)} {t('creator.studentsLower')}</span>
+          {curso.modulos_count > 0 && <span className="flex items-center gap-1"><Layers size={11} />{t('creator.modulesCount', { n: curso.modulos_count })}</span>}
           {curso.duracion && <span className="flex items-center gap-1"><Clock size={11} />{curso.duracion}</span>}
         </div>
         <div className="flex items-center justify-between pt-2 mt-auto border-t border-gray-100 dark:border-gray-800">
-          {curso.modelo_negocio === 'gratis'      && <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">GRATIS</span>}
+          {curso.modelo_negocio === 'gratis'      && <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">{t('creator.free')}</span>}
           {curso.modelo_negocio === 'pago_unico'  && <span className="text-sm font-bold text-gray-900 dark:text-white">${Number(curso.precio).toLocaleString()} MXN</span>}
           {curso.modelo_negocio === 'suscripcion' && <span className="text-xs font-bold text-primary-600 dark:text-primary-400">${Number(curso.precio).toLocaleString()}/mes</span>}
           <span className="text-xs text-primary-500 dark:text-primary-400 font-medium flex items-center gap-1 ml-auto">
-            <Video size={11} /> Ver lecciones →
+            <Video size={11} /> {t('creator.viewLessons')}
           </span>
         </div>
       </div>
@@ -125,6 +127,7 @@ function CursoCard({ curso, index, onDelete }) {
 
 // ─── Empty state ──────────────────────────────────────────────────────────────
 function EmptyState({ busqueda, onCrear }) {
+  const t = useT();
   return (
     <div className="col-span-full flex flex-col items-center justify-center py-20 gap-5 text-center">
       <div className="w-20 h-20 rounded-3xl bg-primary-100 dark:bg-primary-900/20 flex items-center justify-center">
@@ -132,12 +135,12 @@ function EmptyState({ busqueda, onCrear }) {
       </div>
       <div>
         <h3 className="font-bold text-gray-900 dark:text-white text-lg">
-          {busqueda ? 'Sin resultados' : 'Aún no tienes cursos'}
+          {busqueda ? t('creator.noResults') : t('creator.noCoursesYet')}
         </h3>
         <p className="text-gray-500 dark:text-gray-400 text-sm mt-1 max-w-xs">
           {busqueda
-            ? `No encontramos cursos que coincidan con "${busqueda}".`
-            : 'Crea tu primer curso y empieza a compartir tu conocimiento.'}
+            ? `${t('creator.noCoursesMatch')} "${busqueda}".`
+            : t('creator.createFirstCourseDesc')}
         </p>
       </div>
       {!busqueda && (
@@ -145,7 +148,7 @@ function EmptyState({ busqueda, onCrear }) {
           onClick={onCrear}
           className="flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-primary-600 to-primary-600 hover:from-primary-500 hover:to-primary-500 text-white font-semibold text-sm shadow-lg shadow-primary-500/30 hover:shadow-primary-500/50 transition-all active:scale-95"
         >
-          <Plus size={17} /> Crear primer curso
+          <Plus size={17} /> {t('creator.createFirstCourse')}
         </button>
       )}
     </div>
@@ -155,6 +158,7 @@ function EmptyState({ busqueda, onCrear }) {
 // ─── Página principal ─────────────────────────────────────────────────────────
 export default function CursosPage() {
   const navigate = useNavigate();
+  const t = useT();
   const [cursos,   setCursos]   = useState([]);
   const [loading,  setLoading]  = useState(true);
   const [error,    setError]    = useState('');
@@ -176,7 +180,7 @@ export default function CursosPage() {
   useEffect(() => { fetchCursos(); }, [fetchCursos]);
 
   const handleDelete = async (id) => {
-    if (!confirm('¿Eliminar este curso? Esta acción no se puede deshacer.')) return;
+    if (!confirm(t('creator.confirmDelete'))) return;
     try {
       await api.delete(`/cursos/${id}`);
       setCursos(prev => prev.filter(c => c.id !== id));
@@ -200,10 +204,10 @@ export default function CursosPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-            <BookOpen size={24} className="text-primary-500" /> Mis Cursos
+            <BookOpen size={24} className="text-primary-500" /> {t('creator.myCourses')}
           </h2>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            Gestiona tus cursos, sube videos y organiza el contenido.
+            {t('creator.manageCoursesDesc')}
           </p>
         </div>
         <button
@@ -211,7 +215,7 @@ export default function CursosPage() {
           onClick={() => navigate('/creator/cursos/nuevo')}
           className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-primary-600 to-primary-600 hover:from-primary-500 hover:to-primary-500 text-white font-semibold text-sm shadow-lg shadow-primary-500/30 hover:shadow-primary-500/50 transition-all active:scale-95 whitespace-nowrap"
         >
-          <Plus size={17} /> Crear Curso
+          <Plus size={17} /> {t('creator.createCourse')}
         </button>
       </div>
 
@@ -219,9 +223,9 @@ export default function CursosPage() {
       {!loading && cursos.length > 0 && (
         <div className="grid grid-cols-3 gap-3">
           {[
-            { label: 'Total cursos',   value: cursos.length,   color: 'text-primary-600 dark:text-primary-400', bg: 'bg-primary-50 dark:bg-primary-900/20' },
-            { label: 'Publicados',     value: publicados,      color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-50 dark:bg-emerald-900/20' },
-            { label: 'Total alumnos',  value: totalAlumnos,    color: 'text-blue-600 dark:text-blue-400', bg: 'bg-blue-50 dark:bg-blue-900/20' },
+            { label: t('creator.totalCourses'),   value: cursos.length,   color: 'text-primary-600 dark:text-primary-400', bg: 'bg-primary-50 dark:bg-primary-900/20' },
+            { label: t('creator.published'),     value: publicados,      color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-50 dark:bg-emerald-900/20' },
+            { label: t('creator.totalStudents'),  value: totalAlumnos,    color: 'text-blue-600 dark:text-blue-400', bg: 'bg-blue-50 dark:bg-blue-900/20' },
           ].map(s => (
             <div key={s.label} className={`${s.bg} rounded-2xl p-4 text-center`}>
               <p className={`text-2xl font-black ${s.color}`}>{s.value}</p>
@@ -237,7 +241,7 @@ export default function CursosPage() {
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
           <input
             type="text"
-            placeholder="Buscar curso por título..."
+            placeholder={t('creator.searchCoursePlaceholder')}
             value={busqueda}
             onChange={e => setBusqueda(e.target.value)}
             className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-white text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 transition"
@@ -254,7 +258,7 @@ export default function CursosPage() {
                   : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
               }`}
             >
-              {f === 'todos' ? 'Todos' : f.charAt(0).toUpperCase() + f.slice(1)}
+              {f === 'todos' ? t('creator.all') : f === 'publicado' ? t('creator.published') : t('creator.draft')}
               {f !== 'todos' && (
                 <span className="ml-1.5 text-[10px] opacity-60">
                   {f === 'publicado' ? publicados : borradores}
@@ -295,7 +299,7 @@ export default function CursosPage() {
               <div className="p-4 rounded-2xl bg-gray-100 dark:bg-gray-800 group-hover:bg-primary-100 dark:group-hover:bg-primary-900/20 transition-colors">
                 <Plus size={26} />
               </div>
-              <span className="text-sm font-semibold">Nuevo Curso</span>
+              <span className="text-sm font-semibold">{t('creator.newCourse')}</span>
             </button>
           )}
 

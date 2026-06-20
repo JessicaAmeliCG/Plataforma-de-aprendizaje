@@ -6,6 +6,7 @@
 import { useState, useEffect } from 'react';
 import { Users, Search, BookOpen, Calendar, Mail, Loader2, RefreshCw } from 'lucide-react';
 import { api } from '../services/api';
+import { useT } from '../contexts/I18nContext';
 
 function getInitials(name = '') {
   return name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
@@ -20,6 +21,7 @@ function formatDate(str) {
 
 // ─── Tarjeta de estudiante ────────────────────────────────────────────────────
 function EstudianteCard({ estudiante, index }) {
+  const t = useT();
   const [expanded, setExpanded] = useState(false);
 
   return (
@@ -53,11 +55,11 @@ function EstudianteCard({ estudiante, index }) {
         <div className="flex items-center gap-3 shrink-0">
           <div className="text-center hidden sm:block">
             <p className="text-lg font-black text-primary-600 dark:text-primary-400">{estudiante.cursos.length}</p>
-            <p className="text-[10px] text-gray-400">cursos</p>
+            <p className="text-[10px] text-gray-400">{t('creator.coursesWord')}</p>
           </div>
           <div className="text-center hidden sm:block">
             <p className="text-xs text-gray-500 dark:text-gray-400">{formatDate(estudiante.created_at)}</p>
-            <p className="text-[10px] text-gray-400">registro</p>
+            <p className="text-[10px] text-gray-400">{t('creator.registrationWord')}</p>
           </div>
           <span className={`text-gray-400 transition-transform duration-200 ${expanded ? 'rotate-90' : ''}`}>›</span>
         </div>
@@ -67,10 +69,10 @@ function EstudianteCard({ estudiante, index }) {
       {expanded && (
         <div className="border-t border-gray-100 dark:border-gray-800 px-4 pb-4 pt-3">
           {estudiante.cursos.length === 0 ? (
-            <p className="text-sm text-gray-400 italic">Sin cursos inscritos aún.</p>
+            <p className="text-sm text-gray-400 italic">{t('creator.noCoursesEnrolledYet')}</p>
           ) : (
             <div className="space-y-2">
-              <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">Cursos inscritos</p>
+              <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">{t('creator.enrolledCourses')}</p>
               {estudiante.cursos.map(c => (
                 <div key={c.id} className="flex items-center gap-3">
                   <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${c.gradient_class} flex items-center justify-center shrink-0`}>
@@ -78,7 +80,7 @@ function EstudianteCard({ estudiante, index }) {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-xs font-medium text-gray-800 dark:text-gray-200 truncate">{c.titulo}</p>
-                    <p className="text-[10px] text-gray-400">Inscrito el {formatDate(c.inscrito_en)}</p>
+                    <p className="text-[10px] text-gray-400">{t('creator.enrolledOn')} {formatDate(c.inscrito_en)}</p>
                   </div>
                   <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
                     c.modelo_negocio === 'gratis'
@@ -87,7 +89,7 @@ function EstudianteCard({ estudiante, index }) {
                       ? 'bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-400'
                       : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
                   }`}>
-                    {c.modelo_negocio === 'gratis' ? 'GRATIS' : c.modelo_negocio === 'suscripcion' ? 'SUSCR.' : 'PAGO'}
+                    {c.modelo_negocio === 'gratis' ? t('creator.freeCaps') : c.modelo_negocio === 'suscripcion' ? t('creator.subsCaps') : t('creator.paidCaps')}
                   </span>
                 </div>
               ))}
@@ -101,6 +103,7 @@ function EstudianteCard({ estudiante, index }) {
 
 // ─── Componente principal ─────────────────────────────────────────────────────
 export default function EstudiantesPage() {
+  const t = useT();
   const [estudiantes, setEstudiantes] = useState([]);
   const [loading,     setLoading]     = useState(true);
   const [error,       setError]       = useState('');
@@ -134,25 +137,25 @@ export default function EstudiantesPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-fade-in-up">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Estudiantes</h2>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{t('creator.studentsTitle')}</h2>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            {estudiantes.length} estudiantes registrados · {totalInscripciones} inscripciones totales
+            {estudiantes.length} {t('creator.registeredStudentsWord')} · {totalInscripciones} {t('creator.totalEnrollmentsWord')}
           </p>
         </div>
         <button
           onClick={fetchEstudiantes}
           className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
         >
-          <RefreshCw size={15} /> Actualizar
+          <RefreshCw size={15} /> {t('creator.update')}
         </button>
       </div>
 
       {/* Stats rápidas */}
       <div className="grid grid-cols-3 gap-4 animate-fade-in-up" style={{ animationDelay: '80ms' }}>
         {[
-          { label: 'Total registrados', value: estudiantes.length,       icon: Users,    color: 'text-primary-600 dark:text-primary-400' },
-          { label: 'Con cursos activos', value: estudiantes.filter(e => e.cursos.length > 0).length, icon: BookOpen, color: 'text-blue-600 dark:text-blue-400' },
-          { label: 'Inscripciones',     value: totalInscripciones,       icon: Calendar, color: 'text-emerald-600 dark:text-emerald-400' },
+          { label: t('creator.totalRegistered'), value: estudiantes.length,       icon: Users,    color: 'text-primary-600 dark:text-primary-400' },
+          { label: t('creator.withActiveCourses'), value: estudiantes.filter(e => e.cursos.length > 0).length, icon: BookOpen, color: 'text-blue-600 dark:text-blue-400' },
+          { label: t('creator.enrollments'),     value: totalInscripciones,       icon: Calendar, color: 'text-emerald-600 dark:text-emerald-400' },
         ].map(s => (
           <div key={s.label} className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-4 text-center shadow-sm">
             <s.icon size={20} className={`${s.color} mx-auto mb-1`} />
@@ -167,7 +170,7 @@ export default function EstudiantesPage() {
         <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
         <input
           type="text"
-          placeholder="Buscar por nombre o email…"
+          placeholder={t('creator.searchNameEmail')}
           value={search}
           onChange={e => setSearch(e.target.value)}
           className="
@@ -186,7 +189,7 @@ export default function EstudiantesPage() {
       {loading ? (
         <div className="flex flex-col items-center justify-center py-16 gap-3">
           <Loader2 size={32} className="text-primary-500 animate-spin" />
-          <p className="text-sm text-gray-500 dark:text-gray-400">Cargando estudiantes…</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">{t('creator.loadingStudents')}</p>
         </div>
       ) : error ? (
         <div className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-2xl p-6 text-center text-sm">
@@ -195,7 +198,7 @@ export default function EstudiantesPage() {
       ) : filtered.length === 0 ? (
         <div className="flex flex-col items-center py-16 gap-3 text-gray-400">
           <Users size={40} className="opacity-30" />
-          <p className="text-sm">{search ? 'Sin resultados para tu búsqueda' : 'Aún no hay estudiantes registrados'}</p>
+          <p className="text-sm">{search ? t('creator.noSearchResults') : t('creator.noStudentsYet')}</p>
         </div>
       ) : (
         <div className="space-y-3">

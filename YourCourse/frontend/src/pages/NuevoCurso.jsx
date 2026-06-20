@@ -10,6 +10,7 @@ import {
   ChevronLeft, Check, Loader2, AlertCircle, Users, Star,
 } from 'lucide-react';
 import { api } from '../services/api';
+import { useT } from '../contexts/I18nContext';
 
 const GRADIENTS = [
   { label: 'Violeta',   value: 'from-primary-600 to-indigo-700' },
@@ -28,7 +29,8 @@ const MODELOS = [
 
 // ─── Preview Card (espejo de CursoCard del Dashboard) ─────────────────────────
 function PreviewCard({ form }) {
-  const gradient = form.gradient_class || GRADIENTS[0].value;
+  const t = useT();
+  const gradient = form.gradient_class || 'from-primary-600 to-indigo-700';
   return (
     <div className="rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-700 shadow-xl bg-white dark:bg-gray-900 w-full max-w-xs mx-auto">
       <div className={`relative h-40 bg-gradient-to-br ${gradient} flex items-center justify-center`}>
@@ -41,23 +43,23 @@ function PreviewCard({ form }) {
             ? 'bg-emerald-100 text-emerald-700'
             : 'bg-amber-100 text-amber-700'
         }`}>
-          {form.estado === 'publicado' ? 'Publicado' : 'Borrador'}
+          {form.estado === 'publicado' ? t('creator.published') : t('creator.draft')}
         </span>
       </div>
       <div className="p-4 space-y-2">
         <h3 className="font-bold text-gray-900 dark:text-white text-sm leading-snug line-clamp-2 min-h-[40px]">
-          {form.titulo || 'Título del curso…'}
+          {form.titulo || t('creator.courseTitlePlaceholder')}
         </h3>
         <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2 min-h-[32px]">
-          {form.descripcion || 'Descripción del curso…'}
+          {form.descripcion || t('creator.courseDescPlaceholder')}
         </p>
         <div className="flex items-center gap-3 text-xs text-gray-400">
-          <span className="flex items-center gap-1"><Users size={11} />0 estudiantes</span>
+          <span className="flex items-center gap-1"><Users size={11} />0 {t('creator.studentsLower')}</span>
           <span className="flex items-center gap-1"><Clock size={11} />{form.duracion || '—'}</span>
-          {form.modulos_count > 0 && <span className="flex items-center gap-1"><Layers size={11} />{form.modulos_count} mód.</span>}
+          {form.modulos_count > 0 && <span className="flex items-center gap-1"><Layers size={11} />{t('creator.modulesShort', { n: form.modulos_count })}</span>}
         </div>
         <div className="pt-2 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between">
-          {form.modelo_negocio === 'gratis'      && <span className="text-xs font-bold text-emerald-600">GRATIS</span>}
+          {form.modelo_negocio === 'gratis'      && <span className="text-xs font-bold text-emerald-600">{t('creator.free')}</span>}
           {form.modelo_negocio === 'pago_unico'  && <span className="text-sm font-bold text-gray-900 dark:text-white">${form.precio || 0} MXN</span>}
           {form.modelo_negocio === 'suscripcion' && <span className="text-xs font-bold text-primary-600">${form.precio || 0}/mes</span>}
           <Star size={13} className="text-gray-300" />
@@ -94,6 +96,22 @@ const INPUT_CLS = `
 // ─── Componente principal ─────────────────────────────────────────────────────
 export default function NuevoCurso() {
   const navigate = useNavigate();
+  const t = useT();
+
+  const GRADIENTS = [
+    { label: t('creator.colorViolet'),   value: 'from-primary-600 to-indigo-700' },
+    { label: t('creator.colorBlue'),      value: 'from-blue-600 to-cyan-600'    },
+    { label: t('creator.colorGreen'),     value: 'from-teal-500 to-emerald-600' },
+    { label: t('creator.colorPink'),      value: 'from-rose-500 to-pink-600'    },
+    { label: t('creator.colorAmber'),     value: 'from-amber-500 to-orange-600' },
+    { label: t('creator.colorIndigo'),    value: 'from-indigo-600 to-primary-700'},
+  ];
+
+  const MODELOS = [
+    { value: 'gratis',      label: t('creator.modelFree'),          desc: t('creator.modelFreeDesc'), icon: '🎁' },
+    { value: 'pago_unico',  label: t('creator.modelOneTime'),        desc: t('creator.modelOneTimeDesc'),  icon: '💳' },
+    { value: 'suscripcion', label: t('creator.modelSub'), desc: t('creator.modelSubDesc'),     icon: '🔄' },
+  ];
 
   const [form, setForm] = useState({
     titulo:         '',
@@ -116,7 +134,7 @@ export default function NuevoCurso() {
     e.preventDefault();
     setError('');
 
-    if (!form.titulo.trim()) { setError('El título es obligatorio.'); return; }
+    if (!form.titulo.trim()) { setError(t('creator.titleRequired')); return; }
 
     try {
       setLoading(true);
@@ -140,8 +158,8 @@ export default function NuevoCurso() {
         <div className="w-16 h-16 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
           <Check size={32} className="text-emerald-600 dark:text-emerald-400" />
         </div>
-        <h2 className="text-xl font-bold text-gray-900 dark:text-white">¡Curso creado!</h2>
-        <p className="text-gray-500 dark:text-gray-400 text-sm">Redirigiendo a tus cursos…</p>
+        <h2 className="text-xl font-bold text-gray-900 dark:text-white">{t('creator.courseCreated')}</h2>
+        <p className="text-gray-500 dark:text-gray-400 text-sm">{t('creator.redirectingCourses')}</p>
       </div>
     );
   }
@@ -154,8 +172,8 @@ export default function NuevoCurso() {
           <ChevronLeft size={20} />
         </button>
         <div>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Crear nuevo curso</h2>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Completa los detalles y previsualiza tu tarjeta en tiempo real.</p>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{t('creator.createNewCourse')}</h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">{t('creator.fillDetailsPreview')}</p>
         </div>
       </div>
 
@@ -168,32 +186,32 @@ export default function NuevoCurso() {
             {/* Información básica */}
             <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-6 space-y-4">
               <h3 className="font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                <BookOpen size={16} className="text-primary-500" /> Información básica
+                <BookOpen size={16} className="text-primary-500" /> {t('creator.basicInfo')}
               </h3>
 
-              <Field label="Título del curso" required>
+              <Field label={t('creator.courseTitle')} required>
                 <input
                   type="text"
                   value={form.titulo}
                   onChange={e => set('titulo', e.target.value)}
-                  placeholder="Ej. React Avanzado con Hooks y Context"
+                  placeholder={t('creator.courseTitleEx')}
                   maxLength={120}
                   className={INPUT_CLS}
                 />
               </Field>
 
-              <Field label="Descripción" hint="Describe qué aprenderán tus estudiantes.">
+              <Field label={t('creator.description')} hint={t('creator.courseDescHint')}>
                 <textarea
                   rows={4}
                   value={form.descripcion}
                   onChange={e => set('descripcion', e.target.value)}
-                  placeholder="Domina los conceptos más avanzados de..."
+                  placeholder={t('creator.courseDescEx')}
                   className={`${INPUT_CLS} resize-none`}
                 />
               </Field>
 
               <div className="grid grid-cols-2 gap-4">
-                <Field label="Módulos" hint="Número de módulos del curso">
+                <Field label={t('creator.modules')} hint={t('creator.modulesNumberHint')}>
                   <div className="relative">
                     <Layers size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                     <input type="number" min={0} max={99}
@@ -204,7 +222,7 @@ export default function NuevoCurso() {
                     />
                   </div>
                 </Field>
-                <Field label="Duración estimada" hint="Ej: 10h 30m">
+                <Field label={t('creator.estimatedDuration')} hint={t('creator.durationEx')}>
                   <div className="relative">
                     <Clock size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                     <input type="text"
@@ -221,7 +239,7 @@ export default function NuevoCurso() {
             {/* Precio y modelo */}
             <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-6 space-y-4">
               <h3 className="font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                <DollarSign size={16} className="text-primary-500" /> Monetización
+                <DollarSign size={16} className="text-primary-500" /> {t('creator.monetization')}
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 {MODELOS.map(m => (
@@ -243,7 +261,7 @@ export default function NuevoCurso() {
               </div>
 
               {form.modelo_negocio !== 'gratis' && (
-                <Field label={form.modelo_negocio === 'suscripcion' ? 'Precio mensual (MXN)' : 'Precio (MXN)'} required>
+                <Field label={form.modelo_negocio === 'suscripcion' ? t('creator.monthlyPrice') : t('creator.price')} required>
                   <div className="relative">
                     <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-semibold">$</span>
                     <input
@@ -261,7 +279,7 @@ export default function NuevoCurso() {
             {/* Color del curso */}
             <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-6 space-y-4">
               <h3 className="font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                <Palette size={16} className="text-primary-500" /> Color de la tarjeta
+                <Palette size={16} className="text-primary-500" /> {t('creator.cardColor')}
               </h3>
               <div className="flex flex-wrap gap-3">
                 {GRADIENTS.map(g => (
@@ -280,11 +298,11 @@ export default function NuevoCurso() {
 
             {/* Estado */}
             <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-6 space-y-3">
-              <h3 className="font-bold text-gray-900 dark:text-white">Estado de publicación</h3>
+              <h3 className="font-bold text-gray-900 dark:text-white">{t('creator.publishState')}</h3>
               <div className="flex gap-3">
                 {[
-                  { value: 'borrador',  label: 'Guardar como borrador', sub: 'No visible para estudiantes', color: 'amber'  },
-                  { value: 'publicado', label: 'Publicar ahora',         sub: 'Visible para todos',          color: 'emerald' },
+                  { value: 'borrador',  label: t('creator.saveAsDraft'), sub: t('creator.notVisibleStudents'), color: 'amber'  },
+                  { value: 'publicado', label: t('creator.publishNow'),         sub: t('creator.visibleAll'),          color: 'emerald' },
                 ].map(s => (
                   <button
                     key={s.value}
@@ -326,8 +344,8 @@ export default function NuevoCurso() {
               "
             >
               {loading
-                ? <><Loader2 size={17} className="animate-spin" /> Creando curso...</>
-                : <><Check size={17} /> {form.estado === 'publicado' ? 'Publicar curso' : 'Guardar borrador'}</>
+                ? <><Loader2 size={17} className="animate-spin" /> {t('creator.creatingCourse')}</>
+                : <><Check size={17} /> {form.estado === 'publicado' ? t('creator.publishCourse') : t('creator.saveDraft')}</>
               }
             </button>
           </div>
@@ -335,12 +353,12 @@ export default function NuevoCurso() {
           {/* ── Preview — 1/3 ────────────────────────────────────────────── */}
           <div className="space-y-4">
             <h3 className="font-bold text-gray-700 dark:text-gray-300 text-sm flex items-center gap-2">
-              Vista previa de la tarjeta
+              {t('creator.cardPreview')}
             </h3>
             <div className="sticky top-4">
               <PreviewCard form={form} />
               <p className="text-xs text-center text-gray-400 dark:text-gray-600 mt-3">
-                Así verán tu curso los estudiantes
+                {t('creator.howStudentsWillSee')}
               </p>
             </div>
           </div>

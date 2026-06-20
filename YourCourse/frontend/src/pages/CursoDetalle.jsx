@@ -9,6 +9,7 @@ import {
   AlertCircle, Video, Film, FileText, Download, Eye, GraduationCap,
 } from 'lucide-react';
 import { api } from '../services/api';
+import { useT } from '../contexts/I18nContext';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function ProgressBar({ progress }) {
@@ -23,13 +24,14 @@ function ProgressBar({ progress }) {
 }
 
 function EstadoBadge({ estado }) {
+  const t = useT();
   return (
     <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${
       estado === 'publicado'
         ? 'bg-emerald-500/30 text-emerald-100'
         : 'bg-white/20 text-white/80'
     }`}>
-      {estado === 'publicado' ? '● Publicado' : '○ Borrador'}
+      {estado === 'publicado' ? t('creator.badgePublished') : t('creator.badgeDraft')}
     </span>
   );
 }
@@ -46,6 +48,7 @@ function VideoPlayer({ src }) {
 }
 
 function LeccionRow({ leccion, index, total, onMoveUp, onMoveDown, onDelete, onRename, previewUrl, onPreview }) {
+  const t = useT();
   const [editando, setEditando]       = useState(false);
   const [nuevoTitulo, setNuevoTitulo] = useState(leccion.titulo);
   const [guardando, setGuardando]     = useState(false);
@@ -90,22 +93,23 @@ function LeccionRow({ leccion, index, total, onMoveUp, onMoveDown, onDelete, onR
         ) : (
           <div className="flex items-center gap-2">
             <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">{leccion.titulo}</p>
-            <button onClick={() => setEditando(true)} title="Renombrar" className="opacity-0 group-hover:opacity-100 p-1 rounded-lg text-gray-400 hover:text-primary-600 hover:bg-primary-100 dark:hover:bg-primary-900/20 transition-all"><Edit3 size={13} /></button>
+            <button onClick={() => setEditando(true)} title={t('creator.rename')} className="opacity-0 group-hover:opacity-100 p-1 rounded-lg text-gray-400 hover:text-primary-600 hover:bg-primary-100 dark:hover:bg-primary-900/20 transition-all"><Edit3 size={13} /></button>
           </div>
         )}
         <div className="flex items-center gap-2 mt-1">
           {hasVideo
-            ? <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1"><Video size={10} /> Video cargado</span>
-            : <span className="text-[11px] text-gray-400 flex items-center gap-1"><Video size={10} /> Sin video</span>}
+            ? <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1"><Video size={10} /> {t('creator.videoUploaded')}</span>
+            : <span className="text-[11px] text-gray-400 flex items-center gap-1"><Video size={10} /> {t('creator.noVideo')}</span>}
           {leccion.duracion && <span className="text-[11px] text-gray-400">· <Clock size={10} className="inline" /> {leccion.duracion}</span>}
         </div>
       </div>
-      <button onClick={() => onDelete(leccion.id)} title="Eliminar" className="opacity-0 group-hover:opacity-100 p-2 rounded-xl text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 transition-all shrink-0"><Trash2 size={15} /></button>
+      <button onClick={() => onDelete(leccion.id)} title={t('creator.delete')} className="opacity-0 group-hover:opacity-100 p-2 rounded-xl text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 transition-all shrink-0"><Trash2 size={15} /></button>
     </div>
   );
 }
 
 function VideoUploadZone({ cursoId, onSuccess }) {
+  const t = useT();
   const [titulo, setTitulo]       = useState('');
   const [archivo, setArchivo]     = useState(null);
   const [progress, setProgress]   = useState(0);
@@ -117,7 +121,7 @@ function VideoUploadZone({ cursoId, onSuccess }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!titulo.trim()) { setError('El título es obligatorio.'); return; }
+    if (!titulo.trim()) { setError(t('creator.titleRequired')); return; }
     setUploading(true); setProgress(0); setError('');
     try {
       const fd = new FormData();
@@ -134,8 +138,8 @@ function VideoUploadZone({ cursoId, onSuccess }) {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Título <span className="text-red-400">*</span></label>
-        <input type="text" value={titulo} onChange={e => setTitulo(e.target.value)} placeholder="ej. Introducción al tema" maxLength={120}
+        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">{t('creator.title')} <span className="text-red-400">*</span></label>
+        <input type="text" value={titulo} onChange={e => setTitulo(e.target.value)} placeholder={t('creator.lessonTitleEx')} maxLength={120}
           className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 transition" />
       </div>
       <div onDrop={e => { e.preventDefault(); handleFile(e.dataTransfer.files[0]); }} onDragOver={e => e.preventDefault()}
@@ -151,20 +155,20 @@ function VideoUploadZone({ cursoId, onSuccess }) {
         ) : (
           <div className="flex flex-col items-center gap-2">
             <Upload size={22} className="text-gray-400" />
-            <p className="text-sm text-gray-600 dark:text-gray-400">Arrastra o <span className="text-primary-500 font-semibold">selecciona un video</span></p>
-            <p className="text-xs text-gray-400">MP4, WebM, MOV, MKV · Máx. 2 GB</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">{t('creator.dragOrSelectVideo')}</p>
+            <p className="text-xs text-gray-400">{t('creator.videoFormatsMax')}</p>
           </div>
         )}
       </div>
       {uploading && (
         <div className="space-y-1.5">
-          <div className="flex justify-between text-xs text-gray-500"><span className="flex items-center gap-1.5"><Loader2 size={12} className="animate-spin" /> Subiendo...</span><span className="font-semibold">{progress}%</span></div>
+          <div className="flex justify-between text-xs text-gray-500"><span className="flex items-center gap-1.5"><Loader2 size={12} className="animate-spin" /> {t('creator.uploading')}</span><span className="font-semibold">{progress}%</span></div>
           <ProgressBar progress={progress} />
         </div>
       )}
       {error && <p className="text-sm text-red-500 flex items-center gap-1.5"><AlertCircle size={14} />{error}</p>}
       <button type="submit" disabled={uploading} className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-gradient-to-r from-primary-600 to-primary-600 hover:from-primary-500 hover:to-primary-500 disabled:opacity-60 text-white font-semibold text-sm shadow-lg shadow-primary-500/25 transition-all active:scale-95">
-        {uploading ? <><Loader2 size={16} className="animate-spin" /> Subiendo... {progress}%</> : <><Plus size={16} /> Agregar lección</>}
+        {uploading ? <><Loader2 size={16} className="animate-spin" /> {t('creator.uploading')} {progress}%</> : <><Plus size={16} /> {t('creator.addLesson')}</>}
       </button>
     </form>
   );
@@ -174,6 +178,7 @@ function VideoUploadZone({ cursoId, onSuccess }) {
 // TAB: EJERCICIOS (PDFs)
 // ──────────────────────────────────────────────────────────────────────────────
 function EjercicioRow({ ejercicio, index, onDelete, onRename }) {
+  const t = useT();
   const [editando, setEditando]       = useState(false);
   const [nuevoTitulo, setNuevoTitulo] = useState(ejercicio.titulo);
   const [guardando, setGuardando]     = useState(false);
@@ -233,13 +238,14 @@ function EjercicioRow({ ejercicio, index, onDelete, onRename }) {
             <Eye size={16} />
           </a>
         )}
-        <button onClick={() => onDelete(ejercicio.id)} className="opacity-0 group-hover:opacity-100 p-2 rounded-xl text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 transition-all" title="Eliminar"><Trash2 size={15} /></button>
+        <button onClick={() => onDelete(ejercicio.id)} className="opacity-0 group-hover:opacity-100 p-2 rounded-xl text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 transition-all" title={t('creator.delete')}><Trash2 size={15} /></button>
       </div>
     </div>
   );
 }
 
 function PdfUploadZone({ cursoId, onSuccess }) {
+  const t = useT();
   const [titulo, setTitulo]         = useState('');
   const [descripcion, setDescripcion] = useState('');
   const [archivo, setArchivo]       = useState(null);
@@ -253,7 +259,7 @@ function PdfUploadZone({ cursoId, onSuccess }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!archivo)        { setError('Selecciona un archivo.'); return; }
-    if (!titulo.trim())  { setError('El título es obligatorio.'); return; }
+    if (!titulo.trim())  { setError(t('creator.titleRequired')); return; }
     setUploading(true); setProgress(0); setError('');
     try {
       const fd = new FormData();
@@ -271,13 +277,13 @@ function PdfUploadZone({ cursoId, onSuccess }) {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Título <span className="text-red-400">*</span></label>
-        <input type="text" value={titulo} onChange={e => setTitulo(e.target.value)} placeholder="ej. Ejercicio 1 — Algoritmos básicos" maxLength={120}
+        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">{t('creator.title')} <span className="text-red-400">*</span></label>
+        <input type="text" value={titulo} onChange={e => setTitulo(e.target.value)} placeholder={t('creator.exerciseTitleEx')} maxLength={120}
           className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 transition" />
       </div>
       <div>
-        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Descripción <span className="text-gray-400 font-normal">(opcional)</span></label>
-        <input type="text" value={descripcion} onChange={e => setDescripcion(e.target.value)} placeholder="Breve descripción del ejercicio" maxLength={200}
+        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">{t('creator.descOptional')}</label>
+        <input type="text" value={descripcion} onChange={e => setDescripcion(e.target.value)} placeholder={t('creator.exerciseDescEx')} maxLength={200}
           className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 transition" />
       </div>
       <div onDrop={e => { e.preventDefault(); handleFile(e.dataTransfer.files[0]); }} onDragOver={e => e.preventDefault()}
@@ -293,21 +299,21 @@ function PdfUploadZone({ cursoId, onSuccess }) {
         ) : (
           <div className="flex flex-col items-center gap-2">
             <Upload size={22} className="text-gray-400" />
-            <p className="text-sm text-gray-600 dark:text-gray-400">Arrastra o <span className="text-rose-500 font-semibold">selecciona el archivo</span></p>
-            <p className="text-xs text-gray-400">PDF, Word, PowerPoint, TXT · Máx. 100 MB</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">{t('creator.dragOrSelectFile')}</p>
+            <p className="text-xs text-gray-400">{t('creator.fileFormatsMax')}</p>
           </div>
         )}
       </div>
       {uploading && (
         <div className="space-y-1.5">
-          <div className="flex justify-between text-xs text-gray-500"><span className="flex items-center gap-1.5"><Loader2 size={12} className="animate-spin" /> Subiendo...</span><span className="font-semibold">{progress}%</span></div>
+          <div className="flex justify-between text-xs text-gray-500"><span className="flex items-center gap-1.5"><Loader2 size={12} className="animate-spin" /> {t('creator.uploading')}</span><span className="font-semibold">{progress}%</span></div>
           <ProgressBar progress={progress} />
         </div>
       )}
       {error && <p className="text-sm text-red-500 flex items-center gap-1.5"><AlertCircle size={14} />{error}</p>}
       <button type="submit" disabled={uploading}
         className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-400 hover:to-pink-500 disabled:opacity-60 text-white font-semibold text-sm shadow-lg shadow-rose-500/25 transition-all active:scale-95">
-        {uploading ? <><Loader2 size={16} className="animate-spin" /> Subiendo... {progress}%</> : <><Plus size={16} /> Agregar ejercicio</>}
+        {uploading ? <><Loader2 size={16} className="animate-spin" /> {t('creator.uploading')} {progress}%</> : <><Plus size={16} /> {t('creator.addExercise')}</>}
       </button>
     </form>
   );
@@ -319,6 +325,7 @@ function PdfUploadZone({ cursoId, onSuccess }) {
 export default function CursoDetalle() {
   const { id }   = useParams();
   const navigate = useNavigate();
+  const t = useT();
   const [tab,         setTab]         = useState('lecciones'); // 'lecciones' | 'ejercicios'
   const [curso,       setCurso]       = useState(null);
   const [lecciones,   setLecciones]   = useState([]);
@@ -373,7 +380,7 @@ export default function CursoDetalle() {
     } catch (err) { alert(err.message); }
   };
   const handleDeleteLeccion = async (lecId) => {
-    if (!confirm('¿Eliminar esta lección? El video se borrará permanentemente.')) return;
+    if (!confirm(t('creator.confirmDeleteLesson'))) return;
     try {
       await api.delete(`/cursos/${id}/lecciones/${lecId}`);
       setLecciones(prev => prev.filter(l => l.id !== lecId));
@@ -389,7 +396,7 @@ export default function CursoDetalle() {
     } catch (err) { alert(err.message); }
   };
   const handleDeleteEjercicio = async (ejId) => {
-    if (!confirm('¿Eliminar este ejercicio? El archivo se borrará permanentemente.')) return;
+    if (!confirm(t('creator.confirmDeleteExercise'))) return;
     try {
       await api.delete(`/cursos/${id}/ejercicios/${ejId}`);
       setEjercicios(prev => prev.filter(e => e.id !== ejId));
@@ -400,8 +407,8 @@ export default function CursoDetalle() {
   if (error || !curso) return (
     <div className="flex flex-col items-center justify-center h-64 gap-4">
       <AlertCircle size={40} className="text-red-400" />
-      <p className="text-gray-600 dark:text-gray-400">{error || 'Curso no encontrado.'}</p>
-      <button onClick={() => navigate('/creator/cursos')} className="underline text-primary-500 text-sm">Volver</button>
+      <p className="text-gray-600 dark:text-gray-400">{error || t('creator.courseNotFound')}</p>
+      <button onClick={() => navigate('/creator/cursos')} className="underline text-primary-500 text-sm">{t('creator.back')}</button>
     </div>
   );
 
@@ -413,13 +420,13 @@ export default function CursoDetalle() {
         <button onClick={() => navigate('/creator/cursos')} className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors"><ArrowLeft size={20} /></button>
         <div className="flex-1 min-w-0">
           <h2 className="text-xl font-bold text-gray-900 dark:text-white line-clamp-1">{curso.titulo}</h2>
-          <p className="text-xs text-gray-400 mt-0.5">Gestión de contenido</p>
+          <p className="text-xs text-gray-400 mt-0.5">{t('creator.contentManagement')}</p>
         </div>
         <button
           onClick={() => navigate(`/creator/cursos/${id}/ver`)}
           className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-semibold text-sm shadow-lg shadow-emerald-500/25 transition-all active:scale-95 whitespace-nowrap"
         >
-          <GraduationCap size={16} /> Tomar clase
+          <GraduationCap size={16} /> {t('creator.takeClass')}
         </button>
       </div>
 
@@ -433,9 +440,9 @@ export default function CursoDetalle() {
             {curso.descripcion && <p className="text-white/70 text-sm mt-1 line-clamp-2">{curso.descripcion}</p>}
           </div>
           <div className="flex gap-6">
-            <div className="text-center"><p className="text-2xl font-black">{lecciones.length}</p><p className="text-xs text-white/60">Lecciones</p></div>
-            <div className="text-center"><p className="text-2xl font-black">{ejercicios.length}</p><p className="text-xs text-white/60">Ejercicios</p></div>
-            <div className="text-center"><p className="text-2xl font-black">{curso.estudiantes || 0}</p><p className="text-xs text-white/60">Alumnos</p></div>
+            <div className="text-center"><p className="text-2xl font-black">{lecciones.length}</p><p className="text-xs text-white/60">{t('creator.lessons')}</p></div>
+            <div className="text-center"><p className="text-2xl font-black">{ejercicios.length}</p><p className="text-xs text-white/60">{t('creator.exercises')}</p></div>
+            <div className="text-center"><p className="text-2xl font-black">{curso.estudiantes || 0}</p><p className="text-xs text-white/60">{t('creator.studentsWord')}</p></div>
           </div>
         </div>
       </div>
@@ -444,11 +451,11 @@ export default function CursoDetalle() {
       <div className="flex gap-1 bg-gray-100 dark:bg-gray-800/80 p-1 rounded-2xl w-fit">
         <button onClick={() => { setTab('lecciones'); setPanelOpen(false); }}
           className={`flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-semibold transition-all ${tab === 'lecciones' ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'}`}>
-          <Video size={16} /> Lecciones <span className="text-xs opacity-60 ml-1">({lecciones.length})</span>
+          <Video size={16} /> {t('creator.lessons')} <span className="text-xs opacity-60 ml-1">({lecciones.length})</span>
         </button>
         <button onClick={() => { setTab('ejercicios'); setPanelOpen(false); }}
           className={`flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-semibold transition-all ${tab === 'ejercicios' ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'}`}>
-          <FileText size={16} /> Ejercicios <span className="text-xs opacity-60 ml-1">({ejercicios.length})</span>
+          <FileText size={16} /> {t('creator.exercises')} <span className="text-xs opacity-60 ml-1">({ejercicios.length})</span>
         </button>
       </div>
 
@@ -458,7 +465,7 @@ export default function CursoDetalle() {
           <div className="xl:col-span-3 space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-base font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                <Video size={18} className="text-primary-500" /> Lecciones
+                <Video size={18} className="text-primary-500" /> {t('creator.lessons')}
                 <span className="text-sm font-normal text-gray-400">({lecciones.length})</span>
                 {reordering && <Loader2 size={14} className="animate-spin text-primary-400 ml-1" />}
               </h3>
@@ -466,8 +473,8 @@ export default function CursoDetalle() {
             {lecciones.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 gap-4 border-2 border-dashed border-gray-200 dark:border-gray-800 rounded-2xl text-center">
                 <Film size={28} className="text-gray-300 dark:text-gray-600" />
-                <p className="font-semibold text-gray-600 dark:text-gray-400">Sin lecciones</p>
-                <p className="text-sm text-gray-400">Agrega tu primer video para empezar.</p>
+                <p className="font-semibold text-gray-600 dark:text-gray-400">{t('creator.noLessons')}</p>
+                <p className="text-sm text-gray-400">{t('creator.addFirstVideo')}</p>
               </div>
             ) : (
               <div className="space-y-2">
@@ -484,14 +491,14 @@ export default function CursoDetalle() {
           <div className="xl:col-span-2 space-y-4">
             {previewUrl && (
               <div className="space-y-2">
-                <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-1.5"><Play size={14} className="text-primary-500" /> Previsualización</h4>
+                <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-1.5"><Play size={14} className="text-primary-500" /> {t('creator.preview')}</h4>
                 <VideoPlayer src={previewUrl} />
-                <button onClick={() => setPreviewUrl(null)} className="w-full py-2 text-xs text-gray-400 hover:text-gray-600 transition-colors">Cerrar</button>
+                <button onClick={() => setPreviewUrl(null)} className="w-full py-2 text-xs text-gray-400 hover:text-gray-600 transition-colors">{t('creator.close')}</button>
               </div>
             )}
             <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl overflow-hidden">
               <button onClick={() => setPanelOpen(p => !p)} className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
-                <span className="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-2"><Plus size={17} className="text-primary-500" /> Agregar nueva lección</span>
+                <span className="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-2"><Plus size={17} className="text-primary-500" /> {t('creator.addNewLesson')}</span>
                 <span className={`text-gray-400 text-xs transition-transform duration-200 ${panelOpen ? 'rotate-180' : ''}`}>▼</span>
               </button>
               {panelOpen && (
@@ -501,8 +508,8 @@ export default function CursoDetalle() {
               )}
             </div>
             <div className="bg-primary-50 dark:bg-primary-900/10 border border-primary-200 dark:border-primary-800 rounded-2xl p-4">
-              <p className="text-xs font-semibold text-primary-700 dark:text-primary-400 mb-1">💡 Tip</p>
-              <p className="text-xs text-primary-600 dark:text-primary-300 leading-relaxed">Usa <strong>▲ ▼</strong> para reordenar. Haz clic en el ▶ para previsualizar. Los cambios se guardan automáticamente.</p>
+              <p className="text-xs font-semibold text-primary-700 dark:text-primary-400 mb-1">💡 {t('creator.tip')}</p>
+              <p className="text-xs text-primary-600 dark:text-primary-300 leading-relaxed">{t('creator.reorderTip')}</p>
             </div>
           </div>
         </div>
@@ -513,14 +520,14 @@ export default function CursoDetalle() {
         <div className="grid grid-cols-1 xl:grid-cols-5 gap-6">
           <div className="xl:col-span-3 space-y-4">
             <h3 className="text-base font-bold text-gray-900 dark:text-white flex items-center gap-2">
-              <FileText size={18} className="text-rose-500" /> Ejercicios y Material de Apoyo
+              <FileText size={18} className="text-rose-500" /> {t('creator.exercisesMaterial')}
               <span className="text-sm font-normal text-gray-400">({ejercicios.length})</span>
             </h3>
             {ejercicios.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 gap-4 border-2 border-dashed border-gray-200 dark:border-gray-800 rounded-2xl text-center">
                 <FileText size={28} className="text-gray-300 dark:text-gray-600" />
-                <p className="font-semibold text-gray-600 dark:text-gray-400">Sin ejercicios</p>
-                <p className="text-sm text-gray-400">Sube PDFs, presentaciones o documentos de apoyo.</p>
+                <p className="font-semibold text-gray-600 dark:text-gray-400">{t('creator.noExercises')}</p>
+                <p className="text-sm text-gray-400">{t('creator.uploadPdfsDesc')}</p>
               </div>
             ) : (
               <div className="space-y-2">
@@ -535,7 +542,7 @@ export default function CursoDetalle() {
           <div className="xl:col-span-2 space-y-4">
             <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl overflow-hidden">
               <button onClick={() => setPanelOpen(p => !p)} className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
-                <span className="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-2"><Plus size={17} className="text-rose-500" /> Subir nuevo ejercicio</span>
+                <span className="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-2"><Plus size={17} className="text-rose-500" /> {t('creator.uploadNewExercise')}</span>
                 <span className={`text-gray-400 text-xs transition-transform duration-200 ${panelOpen ? 'rotate-180' : ''}`}>▼</span>
               </button>
               {panelOpen && (
@@ -545,13 +552,13 @@ export default function CursoDetalle() {
               )}
             </div>
             <div className="bg-rose-50 dark:bg-rose-900/10 border border-rose-200 dark:border-rose-800 rounded-2xl p-4">
-              <p className="text-xs font-semibold text-rose-700 dark:text-rose-400 mb-1">📎 Formatos soportados</p>
+              <p className="text-xs font-semibold text-rose-700 dark:text-rose-400 mb-1">📎 {t('creator.supportedFormats')}</p>
               <div className="flex flex-wrap gap-1.5 mt-2">
                 {['PDF', 'Word (.docx)', 'PowerPoint (.pptx)', 'Texto (.txt)'].map(f => (
                   <span key={f} className="text-[11px] px-2 py-0.5 rounded-full bg-rose-100 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 font-medium">{f}</span>
                 ))}
               </div>
-              <p className="text-xs text-rose-600 dark:text-rose-300 leading-relaxed mt-2">Los estudiantes podrán descargar estos archivos como material complementario de cada lección.</p>
+              <p className="text-xs text-rose-600 dark:text-rose-300 leading-relaxed mt-2">{t('creator.studentsCanDownload')}</p>
             </div>
           </div>
         </div>

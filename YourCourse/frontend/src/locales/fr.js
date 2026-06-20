@@ -7,7 +7,7 @@ const fr = {
   'nav.analytics':   'Analytiques',
   'nav.settings':    'Paramètres',
   'nav.logout':      'Déconnexion',
-  'nav.panel':       'Panneau Créateur',
+  'nav.panel':       'Panneau de Gestion',
   'header.subtitle': 'YourCourse · Panneau Créateur',
   'settings.title':            'Paramètres',
   'settings.subtitle':         'Personnalisez votre compte et vos préférences de plateforme.',

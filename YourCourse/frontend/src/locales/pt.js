@@ -7,7 +7,7 @@ const pt = {
   'nav.analytics':   'Análises',
   'nav.settings':    'Configurações',
   'nav.logout':      'Sair',
-  'nav.panel':       'Painel do Criador',
+  'nav.panel':       'Painel de Gestão',
   'header.subtitle': 'YourCourse · Painel do Criador',
   'settings.title':            'Configurações',
   'settings.subtitle':         'Personalize sua conta e preferências da plataforma.',

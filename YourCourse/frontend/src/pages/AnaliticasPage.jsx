@@ -12,6 +12,7 @@ import {
   Loader2, AlertCircle, Award, BarChart2,
 } from 'lucide-react';
 import { api } from '../services/api';
+import { useT } from '../contexts/I18nContext';
 
 // ─── Tooltip personalizado ─────────────────────────────────────────────────────
 function CustomTooltip({ active, payload, label, prefix = '', suffix = '' }) {
@@ -59,6 +60,7 @@ const BAR_COLORS = [
 
 // ─── Página principal ─────────────────────────────────────────────────────────
 export default function AnaliticasPage() {
+  const t = useT();
   const [data,    setData]    = useState(null);
   const [loading, setLoading] = useState(true);
   const [error,   setError]   = useState('');
@@ -82,7 +84,7 @@ export default function AnaliticasPage() {
   if (error) return (
     <div className="flex items-center gap-3 p-5 rounded-2xl bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400">
       <AlertCircle size={20} />{error}
-      <button onClick={fetch} className="ml-auto underline text-sm">Reintentar</button>
+      <button onClick={fetch} className="ml-auto underline text-sm">{t('creator.retry')}</button>
     </div>
   );
 
@@ -131,19 +133,19 @@ export default function AnaliticasPage() {
       {/* Header */}
       <div>
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-          <BarChart2 size={24} className="text-emerald-500" /> Analíticas
+          <BarChart2 size={24} className="text-emerald-500" /> {t('creator.analyticsTitle')}
         </h2>
         <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-          Estadísticas detalladas de ingresos, alumnos y comprensión de tus cursos.
+          {t('creator.analyticsDesc')}
         </p>
       </div>
 
       {/* KPIs globales */}
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
-        <KpiCard label="Cursos creados"    value={kpis.totalCursos}        sub={`${cursos.filter(c=>c.estado==='publicado').length} publicados`} Icon={BookOpen}    gradient="from-primary-500 to-primary-600" delay={0} />
-        <KpiCard label="Estudiantes"       value={kpis.totalEstudiantes}   sub="En la plataforma"                                                  Icon={Users}       gradient="from-blue-500 to-cyan-500"     delay={80} />
-        <KpiCard label="Inscripciones"     value={kpis.totalInscripciones} sub="Total de inscripciones"                                            Icon={Award}       gradient="from-emerald-500 to-teal-500"  delay={160} />
-        <KpiCard label="Ingresos estimados" value={`$${(kpis.ingresoTotal||0).toLocaleString()}`} sub="MXN acumulado"                              Icon={DollarSign}  gradient="from-amber-400 to-orange-500"  delay={240} />
+        <KpiCard label={t('creator.coursesCreated')}    value={kpis.totalCursos}        sub={`${cursos.filter(c=>c.estado==='publicado').length} ${t('creator.publishedWord')}`} Icon={BookOpen}    gradient="from-primary-500 to-primary-600" delay={0} />
+        <KpiCard label={t('creator.studentsTitle')}       value={kpis.totalEstudiantes}   sub={t('creator.onPlatform')}                                                  Icon={Users}       gradient="from-blue-500 to-cyan-500"     delay={80} />
+        <KpiCard label={t('creator.enrollments')}     value={kpis.totalInscripciones} sub={t('creator.totalEnrollmentsSub')}                                            Icon={Award}       gradient="from-emerald-500 to-teal-500"  delay={160} />
+        <KpiCard label={t('creator.estimatedRevenue')} value={`$${(kpis.ingresoTotal||0).toLocaleString()}`} sub={t('creator.mxnAccumulated')}                              Icon={DollarSign}  gradient="from-amber-400 to-orange-500"  delay={240} />
       </div>
 
       {/* Fila de 2 gráficas: Ingresos y Alumnos */}
@@ -154,14 +156,14 @@ export default function AnaliticasPage() {
           <div className="flex items-center gap-2 mb-6">
             <div className="p-2 rounded-xl bg-amber-100 dark:bg-amber-900/20"><DollarSign size={18} className="text-amber-500" /></div>
             <div>
-              <h3 className="font-bold text-gray-900 dark:text-white text-sm">Ingresos por Curso</h3>
-              <p className="text-xs text-gray-400">Estimado: precio × inscripciones</p>
+              <h3 className="font-bold text-gray-900 dark:text-white text-sm">{t('creator.revenueByCourse')}</h3>
+              <p className="text-xs text-gray-400">{t('creator.estimatedRevenueDesc')}</p>
             </div>
           </div>
           {!hasIngresos ? (
             <div className="flex flex-col items-center justify-center h-48 gap-3 text-center">
               <DollarSign size={32} className="text-gray-200 dark:text-gray-700" />
-              <p className="text-sm text-gray-400">Sin cursos de pago con inscripciones</p>
+              <p className="text-sm text-gray-400">{t('creator.noPaidCoursesEnrolled')}</p>
             </div>
           ) : (
             <ResponsiveContainer width="100%" height={220}>
@@ -183,14 +185,14 @@ export default function AnaliticasPage() {
           <div className="flex items-center gap-2 mb-6">
             <div className="p-2 rounded-xl bg-blue-100 dark:bg-blue-900/20"><Users size={18} className="text-blue-500" /></div>
             <div>
-              <h3 className="font-bold text-gray-900 dark:text-white text-sm">Alumnos por Curso</h3>
-              <p className="text-xs text-gray-400">Número de inscripciones por curso</p>
+              <h3 className="font-bold text-gray-900 dark:text-white text-sm">{t('creator.studentsByCourse')}</h3>
+              <p className="text-xs text-gray-400">{t('creator.enrollmentsByCourse')}</p>
             </div>
           </div>
           {!hasAlumnos ? (
             <div className="flex flex-col items-center justify-center h-48 gap-3 text-center">
               <Users size={32} className="text-gray-200 dark:text-gray-700" />
-              <p className="text-sm text-gray-400">Aún no hay inscripciones</p>
+              <p className="text-sm text-gray-400">{t('creator.noEnrollmentsYet')}</p>
             </div>
           ) : (
             <ResponsiveContainer width="100%" height={220}>
@@ -198,7 +200,7 @@ export default function AnaliticasPage() {
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" className="dark:opacity-10" />
                 <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#9ca3af' }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fontSize: 11, fill: '#9ca3af' }} axisLine={false} tickLine={false} allowDecimals={false} />
-                <Tooltip content={<CustomTooltip suffix=" alumnos" />} />
+                <Tooltip content={<CustomTooltip suffix={t('creator.studentsSuffix')} />} />
                 <Bar dataKey="valor" radius={[8, 8, 0, 0]} maxBarSize={56}>
                   {alumnosData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
                 </Bar>
@@ -216,15 +218,15 @@ export default function AnaliticasPage() {
           <div className="flex items-center gap-2 mb-6">
             <div className="p-2 rounded-xl bg-emerald-100 dark:bg-emerald-900/20"><Star size={18} className="text-emerald-500" /></div>
             <div>
-              <h3 className="font-bold text-gray-900 dark:text-white text-sm">Comprensión por Curso</h3>
-              <p className="text-xs text-gray-400">Calificación promedio según reseñas de estudiantes</p>
+              <h3 className="font-bold text-gray-900 dark:text-white text-sm">{t('creator.comprehensionByCourse')}</h3>
+              <p className="text-xs text-gray-400">{t('creator.avgRatingDesc')}</p>
             </div>
           </div>
           {!hasComprension ? (
             <div className="flex flex-col items-center justify-center h-48 gap-3 text-center">
               <Star size={32} className="text-gray-200 dark:text-gray-700" />
-              <p className="text-sm text-gray-400">Aún no hay reseñas de cursos</p>
-              <p className="text-xs text-gray-400">Las reseñas de estudiantes aparecerán aquí como indicador de comprensión.</p>
+              <p className="text-sm text-gray-400">{t('creator.noCourseReviewsYet')}</p>
+              <p className="text-xs text-gray-400">{t('creator.reviewsWillAppearHere')}</p>
             </div>
           ) : (
             <>
@@ -258,14 +260,14 @@ export default function AnaliticasPage() {
           <div className="flex items-center gap-2 mb-6">
             <div className="p-2 rounded-xl bg-primary-100 dark:bg-primary-900/20"><TrendingUp size={18} className="text-primary-500" /></div>
             <div>
-              <h3 className="font-bold text-gray-900 dark:text-white text-sm">Actividad Mensual</h3>
-              <p className="text-xs text-gray-400">Inscripciones por mes (últimos 6 meses)</p>
+              <h3 className="font-bold text-gray-900 dark:text-white text-sm">{t('creator.monthlyActivity')}</h3>
+              <p className="text-xs text-gray-400">{t('creator.enrollmentsPerMonth')}</p>
             </div>
           </div>
           {!hasActividad ? (
             <div className="flex flex-col items-center justify-center h-48 gap-3 text-center">
               <TrendingUp size={32} className="text-gray-200 dark:text-gray-700" />
-              <p className="text-sm text-gray-400">Aún no hay actividad registrada</p>
+              <p className="text-sm text-gray-400">{t('creator.noActivityYet')}</p>
             </div>
           ) : (
             <ResponsiveContainer width="100%" height={220}>
@@ -273,7 +275,7 @@ export default function AnaliticasPage() {
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" className="dark:opacity-10" />
                 <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#9ca3af' }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fontSize: 11, fill: '#9ca3af' }} axisLine={false} tickLine={false} allowDecimals={false} />
-                <Tooltip content={<CustomTooltip suffix=" inscripciones" />} />
+                <Tooltip content={<CustomTooltip suffix={t('creator.enrollmentsSuffix')} />} />
                 <Line
                   type="monotone"
                   dataKey="inscripciones"
@@ -292,17 +294,17 @@ export default function AnaliticasPage() {
       {cursos.length > 0 && (
         <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-6 shadow-sm overflow-x-auto">
           <h3 className="font-bold text-gray-900 dark:text-white text-sm mb-4 flex items-center gap-2">
-            <BookOpen size={16} className="text-primary-500" /> Resumen por Curso
+            <BookOpen size={16} className="text-primary-500" /> {t('creator.courseSummary')}
           </h3>
           <table className="w-full text-sm min-w-[600px]">
             <thead>
               <tr className="text-xs text-gray-400 dark:text-gray-500 border-b border-gray-100 dark:border-gray-800">
-                <th className="text-left pb-3 font-semibold">Curso</th>
-                <th className="text-center pb-3 font-semibold">Estado</th>
-                <th className="text-right pb-3 font-semibold">Alumnos</th>
-                <th className="text-right pb-3 font-semibold">Precio</th>
-                <th className="text-right pb-3 font-semibold">Ingresos Est.</th>
-                <th className="text-right pb-3 font-semibold">Rating</th>
+                <th className="text-left pb-3 font-semibold">{t('creator.courseHeader')}</th>
+                <th className="text-center pb-3 font-semibold">{t('creator.statusHeader')}</th>
+                <th className="text-right pb-3 font-semibold">{t('creator.studentsHeader')}</th>
+                <th className="text-right pb-3 font-semibold">{t('creator.priceHeader')}</th>
+                <th className="text-right pb-3 font-semibold">{t('creator.estRevenueHeader')}</th>
+                <th className="text-right pb-3 font-semibold">{t('creator.ratingHeader')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50 dark:divide-gray-800">
@@ -318,12 +320,12 @@ export default function AnaliticasPage() {
                     </td>
                     <td className="py-3 text-center">
                       <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${c.estado === 'publicado' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'}`}>
-                        {c.estado}
+                        {c.estado === 'publicado' ? t('creator.badgePublished') : t('creator.badgeDraft')}
                       </span>
                     </td>
                     <td className="py-3 text-right font-semibold text-gray-900 dark:text-white">{c.estudiantes}</td>
                     <td className="py-3 text-right text-gray-500 dark:text-gray-400">
-                      {c.modelo_negocio === 'gratis' ? <span className="text-emerald-500 font-bold text-xs">GRATIS</span> : `$${Number(c.precio).toLocaleString()}`}
+                      {c.modelo_negocio === 'gratis' ? <span className="text-emerald-500 font-bold text-xs">{t('creator.freeCaps')}</span> : `$${Number(c.precio).toLocaleString()}`}
                     </td>
                     <td className="py-3 text-right font-bold text-gray-900 dark:text-white">
                       {c.ingresos_estimados > 0 ? `$${Number(c.ingresos_estimados).toLocaleString()}` : '—'}

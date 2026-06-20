@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import { PlayCircle, CheckCircle, MessageSquare, BookOpen, ChevronLeft } from 'lucide-react';
+import { useT } from '../contexts/I18nContext';
 
 export default function StudentCursoViewer() {
+  const t = useT();
   const { id } = useParams();
   const navigate = useNavigate();
   const [curso, setCurso] = useState(null);
@@ -44,8 +46,8 @@ export default function StudentCursoViewer() {
     <div className="flex flex-col h-screen bg-gray-50 dark:bg-gray-900 overflow-hidden animate-fade-in-up">
       {/* Top Navbar */}
       <header className="h-16 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex items-center px-4 shrink-0">
-        <button onClick={() => navigate('/student/dashboard')} className="flex items-center text-gray-600 dark:text-gray-300 hover:text-blue-600 hover-bounce">
-          <ChevronLeft size={24} /> Volver al Dashboard
+        <button onClick={() => navigate('/student/dashboard')} className="flex items-center text-gray-600 dark:text-gray-300 hover:text-primary-600 hover-bounce">
+          <ChevronLeft size={24} /> {t('viewer.backDashboard')}
         </button>
         <h1 className="ml-4 font-bold text-lg text-gray-900 dark:text-white truncate">
           {curso.titulo}
@@ -67,7 +69,7 @@ export default function StudentCursoViewer() {
             ) : (
               <div className="w-full h-full flex items-center justify-center text-gray-500 flex-col gap-4">
                 <PlayCircle size={64} className="hover-scale" />
-                <p>No hay video disponible para esta lección</p>
+                <p>{t('viewer.noVideo')}</p>
               </div>
             )}
           </div>
@@ -76,16 +78,16 @@ export default function StudentCursoViewer() {
           <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shrink-0">
             <div className="flex px-4 space-x-6">
               {[
-                { id: 'descripcion', label: 'Descripción', icon: BookOpen },
-                { id: 'preguntas', label: 'Preguntas', icon: MessageSquare },
-                { id: 'notas', label: 'Mis Notas', icon: CheckCircle }
-              ].map(t => (
+                { id: 'descripcion', label: t('viewer.tabDescription'), icon: BookOpen },
+                { id: 'preguntas', label: t('viewer.tabQuestions'), icon: MessageSquare },
+                { id: 'notas', label: t('viewer.tabNotes'), icon: CheckCircle }
+              ].map(tTab => (
                 <button
-                  key={t.id}
-                  onClick={() => setActiveTab(t.id)}
+                  key={tTab.id}
+                  onClick={() => setActiveTab(tTab.id)}
                   className={`flex items-center gap-2 py-4 px-2 border-b-2 font-medium transition-colors hover-bounce ${
-                    activeTab === t.id 
-                      ? 'border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400' 
+                    activeTab === tTab.id 
+                      ? 'border-primary-600 text-primary-600 dark:border-primary-400 dark:text-primary-400' 
                       : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
                   }`}
                 >
@@ -100,25 +102,25 @@ export default function StudentCursoViewer() {
             {activeTab === 'descripcion' && (
               <div className="prose dark:prose-invert max-w-none">
                 <h2 className="text-2xl font-bold mb-4">{leccionActiva?.titulo}</h2>
-                <p>{leccionActiva?.descripcion || 'No hay descripción disponible para esta lección.'}</p>
+                <p>{leccionActiva?.descripcion || t('viewer.noDescription')}</p>
               </div>
             )}
             
             {activeTab === 'preguntas' && (
               <div>
-                <h3 className="font-bold mb-4">Preguntas de la comunidad</h3>
+                <h3 className="font-bold mb-4">{t('viewer.communityQuestions')}</h3>
                 <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-xl">
-                  <p className="text-sm text-gray-500">Aún no hay preguntas. ¡Sé el primero en preguntar!</p>
-                  <textarea className="w-full mt-4 p-3 rounded-lg border dark:bg-gray-900 dark:border-gray-700" placeholder="Escribe tu pregunta aquí..." rows="3"></textarea>
-                  <button className="mt-2 bg-blue-600 text-white px-4 py-2 rounded-lg font-bold hover-scale">Enviar pregunta</button>
+                  <p className="text-sm text-gray-500">{t('viewer.noQuestions')}</p>
+                  <textarea className="w-full mt-4 p-3 rounded-lg border dark:bg-gray-900 dark:border-gray-700" placeholder={t('viewer.writeQuestion')} rows="3"></textarea>
+                  <button className="mt-2 bg-primary-600 text-white px-4 py-2 rounded-lg font-bold hover-scale">{t('viewer.sendQuestion')}</button>
                 </div>
               </div>
             )}
 
             {activeTab === 'notas' && (
               <div>
-                <h3 className="font-bold mb-4">Mis notas personales</h3>
-                <textarea className="w-full p-4 rounded-xl border dark:bg-gray-800 dark:border-gray-700 h-64 focus:ring-2 focus:ring-blue-500 transition-all" placeholder="Escribe tus apuntes aquí... se guardarán automáticamente."></textarea>
+                <h3 className="font-bold mb-4">{t('viewer.myNotes')}</h3>
+                <textarea className="w-full p-4 rounded-xl border dark:bg-gray-800 dark:border-gray-700 h-64 focus:ring-2 focus:ring-primary-500 transition-all" placeholder={t('viewer.writeNotes')}></textarea>
               </div>
             )}
           </div>
@@ -127,9 +129,9 @@ export default function StudentCursoViewer() {
         {/* Sidebar (Syllabus) */}
         <aside className="w-80 bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 flex flex-col shrink-0">
           <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-            <h2 className="font-bold text-gray-900 dark:text-white">Contenido del Curso</h2>
-            <div className="mt-2 text-xs font-semibold bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300 px-3 py-1 rounded-full inline-block">
-              1 / {lecciones.length} Completado
+            <h2 className="font-bold text-gray-900 dark:text-white">{t('viewer.courseContent')}</h2>
+            <div className="mt-2 text-xs font-semibold bg-primary-100 text-primary-700 dark:bg-primary-900 dark:text-primary-300 px-3 py-1 rounded-full inline-block">
+              {t('viewer.completed', { current: 1, total: lecciones.length })}
             </div>
           </div>
           
@@ -140,15 +142,15 @@ export default function StudentCursoViewer() {
                 onClick={() => setLeccionActiva(l)}
                 className={`w-full text-left p-3 rounded-xl transition-all duration-200 flex items-start gap-3 hover-scale ${
                   leccionActiva?.id === l.id 
-                    ? 'bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800' 
+                    ? 'bg-primary-50 dark:bg-primary-900/30 border border-primary-200 dark:border-primary-800' 
                     : 'hover:bg-gray-50 dark:hover:bg-gray-700/50 border border-transparent'
                 }`}
               >
                 <div className="mt-0.5 text-gray-400">
-                  <PlayCircle size={18} className={leccionActiva?.id === l.id ? 'text-blue-600 animate-pulse' : ''} />
+                  <PlayCircle size={18} className={leccionActiva?.id === l.id ? 'text-primary-600 animate-pulse' : ''} />
                 </div>
                 <div>
-                  <h4 className={`text-sm font-medium ${leccionActiva?.id === l.id ? 'text-blue-700 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300'}`}>
+                  <h4 className={`text-sm font-medium ${leccionActiva?.id === l.id ? 'text-primary-700 dark:text-primary-400' : 'text-gray-700 dark:text-gray-300'}`}>
                     {index + 1}. {l.titulo}
                   </h4>
                   <p className="text-xs text-gray-400 mt-1">10:00 min</p>
