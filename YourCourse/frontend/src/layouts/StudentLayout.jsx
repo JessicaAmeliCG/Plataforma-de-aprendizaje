@@ -1,13 +1,8 @@
-/**
- * CreatorLayout.jsx — v3
- * Integra: i18n (useT), campana real (NotificationBell), tema
- */
 import { useState, useEffect } from 'react';
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import {
-  LayoutDashboard, BookOpen, Users, MessageSquare,
-  BarChart2, Settings, LogOut, ChevronLeft, ChevronRight,
-  Moon, Sun, GraduationCap, Menu, X,
+  LayoutDashboard, MessageSquare, Settings, LogOut, ChevronLeft, ChevronRight,
+  Moon, Sun, GraduationCap, Menu, BookOpen
 } from 'lucide-react';
 import useAuthStore     from '../stores/authStore';
 import NotificationBell from '../components/NotificationBell';
@@ -17,8 +12,7 @@ function getInitials(name = '') {
   return name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
 }
 
-// ─── Componente principal ─────────────────────────────────────────────────────
-export default function CreatorLayout() {
+export default function StudentLayout() {
   const t     = useT();
   const { lang } = useI18n();
 
@@ -35,37 +29,27 @@ export default function CreatorLayout() {
   const location  = useLocation();
   const user      = useAuthStore(s => s.user);
   const logout    = useAuthStore(s => s.logout);
-  const displayUser = user || { nombre: 'Creador', email: '', avatar_color: 'from-violet-500 to-purple-700' };
+  const displayUser = user || { nombre: 'Estudiante', email: '', avatar_color: 'from-blue-500 to-cyan-600' };
 
-  // Nav items con traducción reactiva al idioma
   const NAV_ITEMS = [
-    { to: '/creator/dashboard',   label: t('nav.dashboard'),  Icon: LayoutDashboard },
-    { to: '/creator/cursos',      label: t('nav.courses'),    Icon: BookOpen },
-    { to: '/creator/estudiantes', label: t('nav.students'),   Icon: Users },
-    { to: '/creator/comunidad',   label: t('nav.community'),  Icon: MessageSquare },
-    { to: '/creator/analiticas',  label: t('nav.analytics'),  Icon: BarChart2 },
-    { to: '/creator/ajustes',     label: t('nav.settings'),   Icon: Settings },
+    { to: '/student/dashboard',   label: t('nav.dashboard'),  Icon: LayoutDashboard },
+    { to: '/student/comunidad',   label: t('nav.community'),  Icon: MessageSquare },
+    { to: '/student/ajustes',     label: t('nav.settings'),   Icon: Settings },
   ];
 
-  // Título dinámico según ruta
   const ROUTE_TITLES = {
-    '/creator/dashboard':   t('nav.dashboard'),
-    '/creator/cursos':      t('nav.courses'),
-    '/creator/estudiantes': t('nav.students'),
-    '/creator/comunidad':   t('nav.community'),
-    '/creator/analiticas':  t('nav.analytics'),
-    '/creator/ajustes':     t('nav.settings'),
+    '/student/dashboard':   t('nav.dashboard'),
+    '/student/comunidad':   t('nav.community'),
+    '/student/ajustes':     t('nav.settings'),
   };
-  const pageTitle = ROUTE_TITLES[location.pathname] ?? t('nav.panel');
+  const pageTitle = ROUTE_TITLES[location.pathname] ?? 'Portal del Estudiante';
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', darkMode);
-    // Sincronizar con la preferencia guardada en ajustes
     const saved = localStorage.getItem('yc_tema');
     if (!saved) localStorage.setItem('yc_tema', darkMode ? 'dark' : 'light');
   }, [darkMode]);
 
-  // Sincronizar darkMode cuando cambie yc_tema (p.ej. desde Ajustes)
   useEffect(() => {
     const handler = () => {
       const tema = localStorage.getItem('yc_tema');
@@ -79,8 +63,7 @@ export default function CreatorLayout() {
   const handleLogout = () => { logout(); navigate('/login'); };
 
   return (
-    <div className="flex h-screen bg-gray-100 dark:bg-gray-950 transition-colors duration-300 overflow-hidden">
-
+    <div className="flex h-screen bg-gray-50 dark:bg-gray-950 transition-colors duration-300 overflow-hidden">
       {/* ── OVERLAY MÓVIL ────────────────────────────────────────────────────── */}
       {mobileMenuOpen && (
         <div
@@ -96,7 +79,7 @@ export default function CreatorLayout() {
 
         {/* Logo */}
         <div className="flex items-center h-16 border-b border-gray-200 dark:border-gray-800 px-4 gap-3 overflow-hidden">
-          <GraduationCap className="text-violet-600 dark:text-violet-400 shrink-0" size={24} />
+          <GraduationCap className="text-blue-600 dark:text-blue-400 shrink-0" size={24} />
           <span className={`font-bold text-gray-900 dark:text-white text-lg whitespace-nowrap transition-all duration-300 ${collapsed ? 'opacity-0 w-0' : 'opacity-100 w-auto'}`}>
             YourCourse
           </span>
@@ -113,7 +96,7 @@ export default function CreatorLayout() {
                 flex items-center gap-3 px-3 py-2.5 rounded-xl
                 text-sm font-medium transition-all duration-150 overflow-hidden
                 ${isActive
-                  ? 'bg-violet-600 text-white shadow-sm shadow-violet-500/25'
+                  ? 'bg-blue-600 text-white shadow-sm shadow-blue-500/25'
                   : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white'
                 }
               `}
@@ -131,7 +114,7 @@ export default function CreatorLayout() {
         <div className="p-2 border-t border-gray-200 dark:border-gray-800 space-y-1">
           {!collapsed && (
             <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-gray-50 dark:bg-gray-800/50">
-              <div className={`w-7 h-7 rounded-full shrink-0 bg-gradient-to-br ${displayUser.avatar_color || 'from-violet-500 to-purple-700'} flex items-center justify-center text-white font-bold text-xs`}>
+              <div className={`w-7 h-7 rounded-full shrink-0 bg-gradient-to-br ${displayUser.avatar_color || 'from-blue-500 to-cyan-600'} flex items-center justify-center text-white font-bold text-xs`}>
                 {getInitials(displayUser.nombre)}
               </div>
               <div className="min-w-0">
@@ -156,7 +139,7 @@ export default function CreatorLayout() {
         <button
           onClick={() => setCollapsed(prev => !prev)}
           aria-label={collapsed ? 'Expandir sidebar' : 'Colapsar sidebar'}
-          className="hidden lg:flex absolute -right-3 top-[72px] w-6 h-6 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm items-center justify-center text-gray-500 dark:text-gray-400 hover:text-violet-600 dark:hover:text-violet-400 hover:border-violet-300 dark:hover:border-violet-700 transition-all duration-200 z-10"
+          className="hidden lg:flex absolute -right-3 top-[72px] w-6 h-6 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm items-center justify-center text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-300 dark:hover:border-blue-700 transition-all duration-200 z-10"
         >
           {collapsed ? <ChevronRight size={13} /> : <ChevronLeft size={13} />}
         </button>
@@ -164,7 +147,6 @@ export default function CreatorLayout() {
 
       {/* ── ÁREA PRINCIPAL ───────────────────────────────────────────────────── */}
       <div className="flex flex-col flex-1 overflow-hidden">
-
         {/* Header */}
         <header className="flex items-center justify-between h-16 px-4 lg:px-6 shrink-0 glass border-b shadow-sm z-10">
           <div className="flex items-center gap-3">
@@ -176,15 +158,12 @@ export default function CreatorLayout() {
             </button>
             <div>
               <h1 className="text-gray-900 dark:text-white font-bold text-lg leading-none">{pageTitle}</h1>
-              <p className="text-xs text-gray-400 mt-0.5">{t('header.subtitle')}</p>
+              <p className="text-xs text-gray-400 mt-0.5">Aprende a tu propio ritmo</p>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
-            {/* Campana de notificaciones REAL */}
             <NotificationBell />
-
-            {/* Toggle Dark/Light */}
             <button
               onClick={() => {
                 const next = !darkMode;
@@ -198,11 +177,9 @@ export default function CreatorLayout() {
                 ? <><Sun size={15} /><span className="hidden sm:inline">{t('common.lightMode')}</span></>
                 : <><Moon size={15} /><span className="hidden sm:inline">{t('common.darkMode')}</span></>}
             </button>
-
-            {/* Avatar */}
             <div
-              onClick={() => navigate('/creator/ajustes')}
-              className={`w-9 h-9 rounded-xl bg-gradient-to-br ${displayUser.avatar_color || 'from-violet-500 to-purple-700'} flex items-center justify-center text-white font-bold text-sm cursor-pointer select-none ring-2 ring-violet-400/20 hover:ring-violet-400/50 transition-all`}
+              onClick={() => navigate('/student/ajustes')}
+              className={`w-9 h-9 rounded-xl bg-gradient-to-br ${displayUser.avatar_color || 'from-blue-500 to-cyan-600'} flex items-center justify-center text-white font-bold text-sm cursor-pointer select-none ring-2 ring-blue-400/20 hover:ring-blue-400/50 transition-all`}
               title={t('nav.settings')}
             >
               {getInitials(displayUser.nombre)}

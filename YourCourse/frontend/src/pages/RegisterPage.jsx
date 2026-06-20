@@ -43,7 +43,8 @@ export default function RegisterPage() {
         password: form.password,
       });
       setAuth(res.user, res.token);
-      navigate('/creator/dashboard');
+      // Por defecto el registro es de estudiantes
+      navigate('/student/dashboard');
     } catch (err) {
       setError(err.message);
     } finally {

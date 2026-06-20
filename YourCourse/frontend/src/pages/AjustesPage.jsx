@@ -53,7 +53,7 @@ function Toast({ message, type = 'success', onClose }) {
 // ─── Sección ──────────────────────────────────────────────────────────────────
 function Section({ title, Icon, iconColor, children }) {
   return (
-    <section className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 overflow-hidden shadow-sm">
+    <section className="glass-card rounded-2xl overflow-hidden">
       <div className="flex items-center gap-3 px-6 py-4 border-b border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/30">
         <div className={`p-2 rounded-xl ${iconColor}`}><Icon size={16} className="text-white" /></div>
         <h3 className="font-bold text-gray-900 dark:text-white">{title}</h3>
@@ -125,13 +125,20 @@ export default function AjustesPage() {
   const [confirmPwd, setConfirmPwd] = useState('');
   const [savingPwd,  setSavingPwd]  = useState(false);
 
-  // Tema
+  // Tema oscuro/claro
   const [tema, setTema] = useState(() => localStorage.getItem('yc_tema') || 'system');
 
   const TEMAS = [
     { value: 'light',  label: t('settings.themeLight'),  Icon: Sun     },
     { value: 'dark',   label: t('settings.themeDark'),   Icon: Moon    },
     { value: 'system', label: t('settings.themeSystem'), Icon: Monitor },
+  ];
+
+  // Estilo visual (Profesional vs Vibrante)
+  const [estilo, setEstilo] = useState(() => localStorage.getItem('yc_estilo') || 'profesional');
+  const ESTILOS = [
+    { value: 'profesional', label: 'Profesional (Sobrio)', colorClass: 'bg-slate-500' },
+    { value: 'vibrante', label: 'Vibrante (Moderno)', colorClass: 'bg-violet-500' },
   ];
 
   const showToast = (message, type = 'success') => setToast({ message, type });
@@ -147,7 +154,7 @@ export default function AjustesPage() {
     }
   }, [user]);
 
-  // Aplicar tema
+  // Aplicar tema (dark/light)
   useEffect(() => {
     const root = document.documentElement;
     if (tema === 'dark')  root.classList.add('dark');
@@ -158,6 +165,17 @@ export default function AjustesPage() {
     }
     localStorage.setItem('yc_tema', tema);
   }, [tema]);
+
+  // Aplicar estilo visual
+  useEffect(() => {
+    const root = document.documentElement;
+    if (estilo === 'vibrante') {
+      root.classList.add('theme-vibrant');
+    } else {
+      root.classList.remove('theme-vibrant');
+    }
+    localStorage.setItem('yc_estilo', estilo);
+  }, [estilo]);
 
   // ── Guardar perfil ────────────────────────────────────────────────────────
   const handleSavePerfil = async () => {
@@ -271,20 +289,35 @@ export default function AjustesPage() {
 
       {/* ── APARIENCIA ────────────────────────────────────────────────────────── */}
       <Section title={t('settings.appearance')} Icon={Palette} iconColor="bg-indigo-600">
-        <div className="space-y-4">
+        <div className="space-y-6">
           <Field label={t('settings.theme')}>
             <div className="grid grid-cols-3 gap-3 mt-1">
               {TEMAS.map(({ value, label, Icon }) => (
                 <button key={value} onClick={() => setTema(value)}
-                  className={`flex flex-col items-center gap-2 py-4 rounded-2xl border-2 transition-all ${tema === value ? 'border-violet-500 bg-violet-50 dark:bg-violet-900/20 text-violet-700 dark:text-violet-400' : 'border-gray-200 dark:border-gray-700 text-gray-500 hover:border-gray-300 dark:hover:border-gray-600'}`}>
+                  className={`flex flex-col items-center gap-2 py-4 rounded-2xl border-2 transition-all hover:-translate-y-1 ${tema === value ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-400 shadow-md' : 'border-gray-200 dark:border-gray-700 text-gray-500 hover:border-gray-300 dark:hover:border-gray-600'}`}>
                   <Icon size={22} />
                   <span className="text-xs font-semibold">{label}</span>
-                  {tema === value && <span className="w-4 h-4 rounded-full bg-violet-500 flex items-center justify-center"><Check size={10} className="text-white" /></span>}
+                  {tema === value && <span className="w-4 h-4 rounded-full bg-primary-500 flex items-center justify-center"><Check size={10} className="text-white" /></span>}
                 </button>
               ))}
             </div>
           </Field>
-          <p className="text-xs text-gray-400">El tema se aplica inmediatamente y se guarda de forma automática.</p>
+          
+          <Field label="Estilo Visual">
+            <div className="grid grid-cols-2 gap-3 mt-1">
+              {ESTILOS.map(({ value, label, colorClass }) => (
+                <button key={value} onClick={() => setEstilo(value)}
+                  className={`flex items-center justify-between px-4 py-4 rounded-2xl border-2 transition-all hover:-translate-y-1 ${estilo === value ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20 shadow-md' : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'}`}>
+                  <div className="flex items-center gap-3">
+                    <span className={`w-4 h-4 rounded-full ${colorClass}`} />
+                    <span className={`text-sm font-semibold ${estilo === value ? 'text-primary-700 dark:text-primary-400' : 'text-gray-600 dark:text-gray-400'}`}>{label}</span>
+                  </div>
+                  {estilo === value && <Check size={16} className="text-primary-500" />}
+                </button>
+              ))}
+            </div>
+          </Field>
+          <p className="text-xs text-gray-400">El tema y estilo se aplican inmediatamente y se guardan de forma automática.</p>
         </div>
       </Section>
 

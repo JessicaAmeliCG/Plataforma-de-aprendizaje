@@ -5,6 +5,9 @@
 require('dotenv').config();
 const express  = require('express');
 const cors     = require('cors');
+const helmet   = require('helmet');
+const compression = require('compression');
+const rateLimit = require('express-rate-limit');
 const path     = require('path');
 const fs       = require('fs');
 
@@ -21,11 +24,34 @@ if (!fs.existsSync(UPLOADS_DIR)) {
 }
 
 // ─── Middlewares globales ─────────────────────────────────────────────────────
+app.use(helmet({ crossOriginResourcePolicy: false })); // Seguridad HTTP (deshabilita CORP para que carguen recursos locales como imágenes)
+app.use(compression()); // Optimiza tamaño de respuestas
+const ALLOWED_ORIGINS = process.env.FRONTEND_URL 
+  ? process.env.FRONTEND_URL.split(',') 
+  : ['http://localhost:5173', 'http://127.0.0.1:5173'];
+
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://127.0.0.1:5173'],
+  origin: function (origin, callback) {
+    if (!origin || ALLOWED_ORIGINS.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('No permitido por CORS'));
+    }
+  },
   credentials: true,
 }));
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
+
+// ─── Limitador de peticiones masivas (Prevención DDoS) ────────────────────────
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutos
+  max: 200, // 200 peticiones por ventana
+  message: { error: 'Demasiadas peticiones, intenta de nuevo más tarde.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+// Aplicar limiter a rutas de API
+app.use('/api', limiter);
 
 // Servir videos subidos estáticamente
 app.use('/uploads', express.static(UPLOADS_DIR));

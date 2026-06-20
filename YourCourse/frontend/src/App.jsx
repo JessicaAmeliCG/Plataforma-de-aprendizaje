@@ -11,6 +11,8 @@ import AnaliticasPage   from './pages/AnaliticasPage'
 import AjustesPage      from './pages/AjustesPage'
 import LoginPage        from './pages/LoginPage'
 import RegisterPage     from './pages/RegisterPage'
+import StudentLayout    from './layouts/StudentLayout'
+import StudentDashboard from './pages/StudentDashboard'
 import useAuthStore     from './stores/authStore'
 
 function PrivateRoute({ children }) {
@@ -37,6 +39,13 @@ function App() {
           <Route path="estudiantes"      element={<EstudiantesPage />} />
           <Route path="comunidad"        element={<ComunidadPage />} />
           <Route path="analiticas"       element={<AnaliticasPage />} />
+          <Route path="ajustes"          element={<AjustesPage />} />
+        </Route>
+
+        {/* Panel de Estudiante — protegido */}
+        <Route path="/student" element={<PrivateRoute><StudentLayout /></PrivateRoute>}>
+          <Route path="dashboard"        element={<StudentDashboard />} />
+          <Route path="comunidad"        element={<ComunidadPage />} />
           <Route path="ajustes"          element={<AjustesPage />} />
         </Route>
 

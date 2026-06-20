@@ -28,6 +28,7 @@ function publicUser(u) {
     avatar_color:    u.avatar_color || 'from-violet-500 to-purple-700',
     notif_email:     u.notif_email    !== undefined ? u.notif_email    : 1,
     notif_platform:  u.notif_platform !== undefined ? u.notif_platform : 1,
+    academia_id:     u.academia_id    !== undefined ? u.academia_id    : 1,
     created_at:      u.created_at,
   };
 }
@@ -65,11 +66,11 @@ router.post('/register', (req, res) => {
     'from-amber-500 to-orange-600',
   ];
   const avatarColor = COLORS[Math.floor(Math.random() * COLORS.length)];
-  const hash = bcrypt.hashSync(password, 10);
+  const hash = bcrypt.hashSync(password, 12);
 
   const result = db.prepare(`
-    INSERT INTO usuarios (nombre, email, password_hash, rol, avatar_color)
-    VALUES (?, ?, ?, 'estudiante', ?)
+    INSERT INTO usuarios (nombre, email, password_hash, rol, avatar_color, academia_id)
+    VALUES (?, ?, ?, 'estudiante', ?, 1)
   `).run(nombre.trim(), email.toLowerCase().trim(), hash, avatarColor);
 
   const newUser = db.prepare('SELECT * FROM usuarios WHERE id = ?').get(result.lastInsertRowid);
@@ -143,7 +144,7 @@ router.patch('/password', authMiddleware, (req, res) => {
     return res.status(401).json({ error: { message: 'La contraseña actual es incorrecta.' } });
 
   db.prepare('UPDATE usuarios SET password_hash = ? WHERE id = ?')
-    .run(bcrypt.hashSync(newPassword, 10), user.id);
+    .run(bcrypt.hashSync(newPassword, 12), user.id);
 
   return res.json({ success: true, message: 'Contraseña actualizada correctamente.' });
 });

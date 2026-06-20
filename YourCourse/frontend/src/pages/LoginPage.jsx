@@ -37,10 +37,10 @@ export default function LoginPage() {
       setAuth(res.user, res.token);
 
       // Redirigir según rol
-      if (res.user.rol === 'creador') {
-        navigate('/creator/dashboard');
+      if (res.user.rol === 'estudiante') {
+        navigate('/student/dashboard');
       } else {
-        navigate('/creator/dashboard'); // TODO: vista de estudiante
+        navigate('/creator/dashboard');
       }
     } catch (err) {
       setError(err.message);

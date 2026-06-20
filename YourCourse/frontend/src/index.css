@@ -6,6 +6,15 @@
   .animate-fade-in-up {
     animation: fadeInUp 0.45s ease both;
   }
+  .animate-spin-slow {
+    animation: spin 3s linear infinite;
+  }
+  .glass {
+    @apply bg-white/70 dark:bg-gray-900/70 backdrop-blur-md border border-white/20 dark:border-gray-800/50;
+  }
+  .glass-card {
+    @apply glass shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1;
+  }
 }
 
 @keyframes fadeInUp {
@@ -20,6 +29,40 @@
 }
 
 @layer base {
+  :root {
+    /* Theme: Profesional / Sobrio (Default) */
+    --color-primary-50: #f8fafc;
+    --color-primary-100: #f1f5f9;
+    --color-primary-200: #e2e8f0;
+    --color-primary-300: #cbd5e1;
+    --color-primary-400: #94a3b8;
+    --color-primary-500: #64748b; /* slate/blue-gray */
+    --color-primary-600: #475569;
+    --color-primary-700: #334155;
+    --color-primary-800: #1e293b;
+    --color-primary-900: #0f172a;
+    
+    --color-bg-light: #f8fafc;
+    --color-bg-dark: #020617;
+  }
+
+  :root.theme-vibrant {
+    /* Theme: Vibrante */
+    --color-primary-50: #f5f3ff;
+    --color-primary-100: #ede9fe;
+    --color-primary-200: #ddd6fe;
+    --color-primary-300: #c4b5fd;
+    --color-primary-400: #a78bfa;
+    --color-primary-500: #8b5cf6; /* violet */
+    --color-primary-600: #7c3aed;
+    --color-primary-700: #6d28d9;
+    --color-primary-800: #5b21b6;
+    --color-primary-900: #4c1d95;
+
+    --color-bg-light: #faf5ff;
+    --color-bg-dark: #0f172a;
+  }
+
   * {
     box-sizing: border-box;
   }
@@ -31,9 +74,16 @@
   }
 
   body {
-    @apply bg-gray-100 dark:bg-gray-950 text-gray-900 dark:text-white;
+    background-color: var(--color-bg-light);
+    color: #0f172a;
     margin: 0;
     padding: 0;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+  
+  html.dark body {
+    background-color: var(--color-bg-dark);
+    color: #f8fafc;
   }
 
   ::-webkit-scrollbar {
@@ -47,6 +97,6 @@
     @apply bg-gray-300 dark:bg-gray-700 rounded-full;
   }
   ::-webkit-scrollbar-thumb:hover {
-    @apply bg-gray-400 dark:bg-gray-600;
+    @apply bg-primary-500;
   }
 }
