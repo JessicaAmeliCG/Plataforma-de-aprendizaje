@@ -3,21 +3,30 @@
  */
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { GraduationCap, Eye, EyeOff, Moon, Sun, UserPlus, Loader2 } from 'lucide-react';
+import { GraduationCap, Eye, EyeOff, Moon, Sun, UserPlus, Loader2, Check, X } from 'lucide-react';
 import { api } from '../services/api';
 import useAuthStore from '../stores/authStore';
 
+// ── Reglas de política de contraseñas (sincronizadas con el backend) ────────────
+const REGLAS_PWD = [
+  { id: 'longitud', label: 'Mínimo 10 caracteres', test: (p) => p.length >= 10 },
+  { id: 'mayuscula', label: 'Al menos una mayúscula (A-Z)', test: (p) => /[A-Z]/.test(p) },
+  { id: 'minuscula', label: 'Al menos una minúscula (a-z)', test: (p) => /[a-z]/.test(p) },
+  { id: 'numero', label: 'Al menos un número (0-9)', test: (p) => /[0-9]/.test(p) },
+  { id: 'especial', label: 'Al menos un símbolo (!@#$%^&*...)', test: (p) => /[^a-zA-Z0-9]/.test(p) },
+];
+
 export default function RegisterPage() {
-  const [form,    setForm]    = useState({ nombre: '', email: '', password: '', confirm: '' });
+  const [form, setForm] = useState({ nombre: '', email: '', password: '', confirm: '' });
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error,   setError]   = useState('');
+  const [error, setError] = useState('');
   const [darkMode, setDarkMode] = useState(
     () => localStorage.getItem('yc_dark_mode') === 'true' ||
-          window.matchMedia('(prefers-color-scheme: dark)').matches
+      window.matchMedia('(prefers-color-scheme: dark)').matches
   );
 
-  const setAuth  = useAuthStore(s => s.setAuth);
+  const setAuth = useAuthStore(s => s.setAuth);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -33,13 +42,19 @@ export default function RegisterPage() {
 
     if (!form.nombre || !form.email || !form.password) { setError('Todos los campos son obligatorios.'); return; }
     if (form.password !== form.confirm) { setError('Las contraseñas no coinciden.'); return; }
-    if (form.password.length < 8) { setError('La contraseña debe tener al menos 8 caracteres.'); return; }
+
+    // Validar todas las reglas de la política
+    const reglasFallidas = REGLAS_PWD.filter(r => !r.test(form.password));
+    if (reglasFallidas.length > 0) {
+      setError(`La contraseña no cumple: ${reglasFallidas[0].label}`);
+      return;
+    }
 
     try {
       setLoading(true);
       const res = await api.post('/auth/register', {
-        nombre:   form.nombre.trim(),
-        email:    form.email.trim(),
+        nombre: form.nombre.trim(),
+        email: form.email.trim(),
         password: form.password,
       });
       setAuth(res.user, res.token);
@@ -96,12 +111,35 @@ export default function RegisterPage() {
               <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">Contraseña</label>
               <div className="relative">
                 <input type={showPass ? 'text' : 'password'} value={form.password} onChange={e => set('password', e.target.value)}
-                  placeholder="Mínimo 8 caracteres" className={`${INPUT} pr-11`} />
+                  placeholder="Mínimo 10 caracteres" className={`${INPUT} pr-11`} />
                 <button type="button" onClick={() => setShowPass(p => !p)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
                   {showPass ? <EyeOff size={17} /> : <Eye size={17} />}
                 </button>
               </div>
+
+              {/* Checklist de política en tiempo real */}
+              {form.password.length > 0 && (
+                <ul className="mt-2 space-y-1 p-3 rounded-xl bg-gray-50 dark:bg-gray-800/60 border border-gray-100 dark:border-gray-700">
+                  {REGLAS_PWD.map(regla => {
+                    const cumplida = regla.test(form.password);
+                    return (
+                      <li key={regla.id} className="flex items-center gap-2 text-xs">
+                        <span className={`w-4 h-4 rounded-full flex items-center justify-center shrink-0 transition-all ${cumplida ? 'bg-emerald-500' : 'bg-gray-200 dark:bg-gray-700'
+                          }`}>
+                          {cumplida
+                            ? <Check size={9} className="text-white" />
+                            : <X size={9} className="text-gray-400" />
+                          }
+                        </span>
+                        <span className={cumplida ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-400 dark:text-gray-500'}>
+                          {regla.label}
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
             </div>
 
             <div className="space-y-1.5">
@@ -114,8 +152,9 @@ export default function RegisterPage() {
               <p className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-3 py-2 rounded-lg">{error}</p>
             )}
 
-            <button id="btn-register" type="submit" disabled={loading}
-              className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-primary-600 to-primary-600 hover:from-primary-500 hover:to-primary-500 disabled:opacity-60 text-white font-bold text-sm shadow-lg shadow-primary-500/30 transition-all active:scale-95 mt-2"
+            <button id="btn-register" type="submit"
+              disabled={loading || REGLAS_PWD.some(r => !r.test(form.password)) || !form.password}
+              className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 disabled:opacity-60 text-white font-bold text-sm shadow-lg shadow-violet-500/30 transition-all active:scale-95 mt-2"
             >
               {loading
                 ? <><Loader2 size={17} className="animate-spin" /> Creando cuenta...</>

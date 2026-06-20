@@ -6,11 +6,20 @@ import { useState, useEffect, useCallback } from 'react';
 import {
   User, Palette, Lock, Globe, Bell, LogOut, Check,
   AlertCircle, Loader2, Sun, Moon, Monitor,
-  Shield, Trash2, FileText,
+  Shield, Trash2, FileText, X,
 } from 'lucide-react';
 import { api } from '../services/api';
 import useAuthStore from '../stores/authStore';
 import { useI18n, useT } from '../contexts/I18nContext';
+
+// ── Reglas de política de contraseñas (sincronizadas con el backend) ────────────
+const REGLAS_PWD = [
+  { id: 'longitud',  label: 'Mínimo 10 caracteres',              test: (p) => p.length >= 10 },
+  { id: 'mayuscula', label: 'Al menos una mayúscula (A-Z)',       test: (p) => /[A-Z]/.test(p) },
+  { id: 'minuscula', label: 'Al menos una minúscula (a-z)',       test: (p) => /[a-z]/.test(p) },
+  { id: 'numero',    label: 'Al menos un número (0-9)',           test: (p) => /[0-9]/.test(p) },
+  { id: 'especial',  label: 'Al menos un símbolo (!@#$%^&*...)', test: (p) => /[^a-zA-Z0-9]/.test(p) },
+];
 
 // ─── Constantes ───────────────────────────────────────────────────────────────
 // Movemos AVATAR_COLORS dentro del componente para poder usar t()
@@ -209,8 +218,14 @@ export default function AjustesPage() {
   // ── Cambiar contraseña ────────────────────────────────────────────────────
   const handleSavePwd = async () => {
     if (!currentPwd || !newPwd || !confirmPwd) { showToast('Completa todos los campos.', 'error'); return; }
-    if (newPwd.length < 8) { showToast('Mínimo 8 caracteres.', 'error'); return; }
     if (newPwd !== confirmPwd) { showToast('Las contraseñas no coinciden.', 'error'); return; }
+
+    // Validar política de contraseñas
+    const reglasFallidas = REGLAS_PWD.filter(r => !r.test(newPwd));
+    if (reglasFallidas.length > 0) {
+      showToast(`La contraseña no cumple: ${reglasFallidas[0].label}`, 'error');
+      return;
+    }
     setSavingPwd(true);
     try {
       await api.patch('/auth/password', { currentPassword: currentPwd, newPassword: newPwd });
@@ -225,17 +240,20 @@ export default function AjustesPage() {
     logout(); window.location.href = '/login';
   };
 
-  // Indicador de fuerza de contraseña
+  // Indicador de fortaleza basado en reglas cumplidas
   const pwdStrength = () => {
     if (!newPwd) return null;
-    if (newPwd.length < 8) return { label: t('settings.pwdShort'),  color: 'bg-red-500',    w: 'w-1/4' };
-    if (newPwd.length < 12 || !/[A-Z]/.test(newPwd) || !/[0-9]/.test(newPwd))
-      return { label: t('settings.pwdMedium'), color: 'bg-amber-400',  w: 'w-2/4' };
-    if (/[^a-zA-Z0-9]/.test(newPwd))
-      return { label: t('settings.pwdStrong'), color: 'bg-emerald-500',w: 'w-full' };
-    return { label: t('settings.pwdGood'),   color: 'bg-blue-500',    w: 'w-3/4' };
+    const cumplidas = REGLAS_PWD.filter(r => r.test(newPwd)).length;
+    const total     = REGLAS_PWD.length; // 5
+    if (cumplidas === 0) return { label: 'Muy débil',  color: 'bg-red-500',     w: 'w-0' };
+    if (cumplidas === 1) return { label: 'Débil',      color: 'bg-red-400',     w: 'w-1/5' };
+    if (cumplidas === 2) return { label: 'Regular',    color: 'bg-amber-400',   w: 'w-2/5' };
+    if (cumplidas === 3) return { label: 'Buena',      color: 'bg-blue-500',    w: 'w-3/5' };
+    if (cumplidas === 4) return { label: 'Fuerte',     color: 'bg-emerald-400', w: 'w-4/5' };
+    return                      { label: 'Muy fuerte', color: 'bg-emerald-500', w: 'w-full' };
   };
-  const strength = pwdStrength();
+  const strength    = pwdStrength();
+  const pwdValida   = newPwd.length > 0 && REGLAS_PWD.every(r => r.test(newPwd));
 
   return (
     <div className="max-w-3xl mx-auto space-y-6 pb-12">
@@ -400,20 +418,36 @@ export default function AjustesPage() {
               </div>
             </div>
           )}
-          <ul className="text-xs text-gray-400 space-y-1">
-            {[
-              { text: t('settings.pwdReq1'), check: newPwd.length >= 8 },
-              { text: t('settings.pwdReq2'), check: /[A-Z]/.test(newPwd) },
-              { text: t('settings.pwdReq3'), check: /[^a-zA-Z]/.test(newPwd) },
-            ].map((r, i) => (
-              <li key={i} className="flex items-center gap-1.5">
-                <span className={`w-1.5 h-1.5 rounded-full ${r.check ? 'bg-emerald-400' : 'bg-gray-300 dark:bg-gray-700'}`} />
-                {r.text}
-              </li>
-            ))}
-          </ul>
+          {/* Checklist de requisitos */}
+          {newPwd.length > 0 && (
+            <ul className="space-y-1.5 p-3 rounded-xl bg-gray-50 dark:bg-gray-800/60 border border-gray-100 dark:border-gray-700">
+              {REGLAS_PWD.map(regla => {
+                const cumplida = regla.test(newPwd);
+                return (
+                  <li key={regla.id} className="flex items-center gap-2 text-xs">
+                    <span className={`w-4 h-4 rounded-full flex items-center justify-center shrink-0 transition-all ${
+                      cumplida ? 'bg-emerald-500' : 'bg-gray-200 dark:bg-gray-700'
+                    }`}>
+                      {cumplida
+                        ? <Check size={9} className="text-white" />
+                        : <X size={9} className="text-gray-400" />
+                      }
+                    </span>
+                    <span className={cumplida ? 'text-emerald-600 dark:text-emerald-400 font-medium' : 'text-gray-400 dark:text-gray-500'}>
+                      {regla.label}
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
           <div className="flex justify-end">
-            <SaveButton loading={savingPwd} onClick={handleSavePwd} label={t('settings.changePwd')} />
+            <SaveButton
+              loading={savingPwd}
+              disabled={!newPwd || !pwdValida}
+              onClick={handleSavePwd}
+              label={t('settings.changePwd')}
+            />
           </div>
         </div>
       </Section>

@@ -7,11 +7,12 @@
  * PATCH /api/auth/password  — Cambiar contraseña
  */
 
-const router = require('express').Router();
-const bcrypt = require('bcryptjs');
-const jwt    = require('jsonwebtoken');
-const db     = require('../config/db');
-const notif  = require('../services/notif');
+const router           = require('express').Router();
+const bcrypt           = require('bcryptjs');
+const jwt              = require('jsonwebtoken');
+const db               = require('../config/db');
+const notif            = require('../services/notif');
+const { validatePassword } = require('../config/passwordPolicy');
 
 
 const JWT_SECRET  = process.env.JWT_SECRET || 'yourcourse_fallback_secret';
@@ -52,8 +53,16 @@ router.post('/register', (req, res) => {
 
   if (!nombre || !email || !password)
     return res.status(400).json({ error: { message: 'Nombre, email y contraseña son requeridos.' } });
-  if (password.length < 8)
-    return res.status(400).json({ error: { message: 'La contraseña debe tener al menos 8 caracteres.' } });
+
+  // ── Validar política de contraseñas ───────────────────────────────────────
+  const pwdCheck = validatePassword(password);
+  if (!pwdCheck.valid)
+    return res.status(400).json({
+      error: {
+        message: pwdCheck.message,
+        errores: pwdCheck.errores,
+      },
+    });
 
   const existing = db.prepare('SELECT id FROM usuarios WHERE email = ?').get(email.toLowerCase().trim());
   if (existing)
@@ -138,8 +147,17 @@ router.patch('/password', authMiddleware, (req, res) => {
 
   if (!currentPassword || !newPassword)
     return res.status(400).json({ error: { message: 'Contraseña actual y nueva son requeridas.' } });
-  if (newPassword.length < 8)
-    return res.status(400).json({ error: { message: 'La nueva contraseña debe tener al menos 8 caracteres.' } });
+
+  // ── Validar política de contraseñas en la nueva ────────────────────────────
+  const pwdCheck = validatePassword(newPassword);
+  if (!pwdCheck.valid)
+    return res.status(400).json({
+      error: {
+        message: pwdCheck.message,
+        errores: pwdCheck.errores,
+      },
+    });
+
   if (!bcrypt.compareSync(currentPassword, user.password_hash))
     return res.status(401).json({ error: { message: 'La contraseña actual es incorrecta.' } });
 
