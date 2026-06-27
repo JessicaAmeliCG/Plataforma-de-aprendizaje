@@ -119,6 +119,7 @@ export default function NuevoCurso() {
     modelo_negocio: 'gratis',
     precio:         '',
     estado:         'borrador',
+    visibilidad:    'publico',
     modulos_count:  '',
     duracion:       '',
     gradient_class: GRADIENTS[0].value,
@@ -296,28 +297,53 @@ export default function NuevoCurso() {
               </div>
             </div>
 
-            {/* Estado */}
-            <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-6 space-y-3">
-              <h3 className="font-bold text-gray-900 dark:text-white">{t('creator.publishState')}</h3>
-              <div className="flex gap-3">
-                {[
-                  { value: 'borrador',  label: t('creator.saveAsDraft'), sub: t('creator.notVisibleStudents'), color: 'amber'  },
-                  { value: 'publicado', label: t('creator.publishNow'),         sub: t('creator.visibleAll'),          color: 'emerald' },
-                ].map(s => (
-                  <button
-                    key={s.value}
-                    type="button"
-                    onClick={() => set('estado', s.value)}
-                    className={`flex-1 p-3 rounded-xl border-2 text-left transition-all ${
-                      form.estado === s.value
-                        ? `border-${s.color}-500 bg-${s.color}-50 dark:bg-${s.color}-900/20`
-                        : 'border-gray-200 dark:border-gray-700'
-                    }`}
-                  >
-                    <p className="text-sm font-bold text-gray-900 dark:text-white">{s.label}</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">{s.sub}</p>
-                  </button>
-                ))}
+            {/* Estado y Visibilidad */}
+            <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-6 space-y-6">
+              <div className="space-y-3">
+                <h3 className="font-bold text-gray-900 dark:text-white">{t('creator.publishState')}</h3>
+                <div className="flex gap-3">
+                  {[
+                    { value: 'borrador',  label: t('creator.saveAsDraft'), sub: t('creator.notVisibleStudents'), color: 'amber'  },
+                    { value: 'publicado', label: t('creator.publishNow'),         sub: t('creator.visibleAll'),          color: 'emerald' },
+                  ].map(s => (
+                    <button
+                      key={s.value}
+                      type="button"
+                      onClick={() => set('estado', s.value)}
+                      className={`flex-1 p-3 rounded-xl border-2 text-left transition-all ${
+                        form.estado === s.value
+                          ? `border-${s.color}-500 bg-${s.color}-50 dark:bg-${s.color}-900/20`
+                          : 'border-gray-200 dark:border-gray-700'
+                      }`}
+                    >
+                      <p className="text-sm font-bold text-gray-900 dark:text-white">{s.label}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">{s.sub}</p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="space-y-3 pt-6 border-t border-gray-100 dark:border-gray-800">
+                <h3 className="font-bold text-gray-900 dark:text-white">Visibilidad del Curso</h3>
+                <div className="flex gap-3">
+                  {[
+                    { value: 'publico',  label: 'Público', sub: 'Visible en el catálogo para todos', color: 'blue'  },
+                    { value: 'privado', label: 'Privado / Invitación', sub: 'Oculto del catálogo general', color: 'gray' },
+                  ].map(s => (
+                    <button
+                      key={s.value}
+                      type="button"
+                      onClick={() => set('visibilidad', s.value)}
+                      className={`flex-1 p-3 rounded-xl border-2 text-left transition-all ${
+                        form.visibilidad === s.value
+                          ? `border-${s.color}-500 bg-${s.color}-50 dark:bg-${s.color}-900/20`
+                          : 'border-gray-200 dark:border-gray-700'
+                      }`}
+                    >
+                      <p className="text-sm font-bold text-gray-900 dark:text-white">{s.label}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">{s.sub}</p>
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
 

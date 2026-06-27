@@ -41,6 +41,10 @@ db.exec(`
     bio          TEXT    DEFAULT '',
     avatar_color TEXT    DEFAULT 'from-violet-500 to-purple-700',
     academia_id  INTEGER DEFAULT 1 REFERENCES academias(id),
+    reset_token  TEXT    DEFAULT NULL,
+    reset_token_expires TEXT DEFAULT NULL,
+    is_verified  INTEGER DEFAULT 0,
+    verification_token TEXT DEFAULT NULL,
     created_at   TEXT    DEFAULT (datetime('now', 'localtime'))
   );
 
@@ -51,6 +55,7 @@ db.exec(`
     precio          REAL    DEFAULT 0,
     modelo_negocio  TEXT    DEFAULT 'gratis',
     estado          TEXT    DEFAULT 'borrador',
+    visibilidad     TEXT    DEFAULT 'publico', -- 'publico' | 'privado'
     creator_id      INTEGER NOT NULL REFERENCES usuarios(id),
     academia_id     INTEGER DEFAULT 1 REFERENCES academias(id),
     modulos_count   INTEGER DEFAULT 0,
@@ -117,6 +122,15 @@ db.exec(`
     leida      INTEGER DEFAULT 0,
     created_at TEXT    DEFAULT (datetime('now', 'localtime'))
   );
+
+  CREATE TABLE IF NOT EXISTS curso_invitaciones (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    curso_id   INTEGER NOT NULL REFERENCES cursos(id) ON DELETE CASCADE,
+    email      TEXT    NOT NULL,
+    token      TEXT    NOT NULL UNIQUE,
+    usada      INTEGER DEFAULT 0,
+    created_at TEXT    DEFAULT (datetime('now', 'localtime'))
+  );
 `);
 
 // Migraciones idempotentes (columnas añadidas post-lanzamiento)
@@ -124,6 +138,24 @@ try { db.exec('ALTER TABLE usuarios ADD COLUMN notif_email INTEGER DEFAULT 1'); 
 try { db.exec('ALTER TABLE usuarios ADD COLUMN notif_platform INTEGER DEFAULT 1'); } catch {}
 try { db.exec('ALTER TABLE usuarios ADD COLUMN academia_id INTEGER DEFAULT 1 REFERENCES academias(id)'); } catch {}
 try { db.exec('ALTER TABLE cursos ADD COLUMN academia_id INTEGER DEFAULT 1 REFERENCES academias(id)'); } catch {}
+try { db.exec("ALTER TABLE cursos ADD COLUMN visibilidad TEXT DEFAULT 'publico'"); } catch {}
+try { db.exec('ALTER TABLE usuarios ADD COLUMN reset_token TEXT DEFAULT NULL'); } catch {}
+try { db.exec('ALTER TABLE usuarios ADD COLUMN reset_token_expires TEXT DEFAULT NULL'); } catch {}
+try { 
+  db.exec('ALTER TABLE usuarios ADD COLUMN is_verified INTEGER DEFAULT 0');
+  db.exec('ALTER TABLE usuarios ADD COLUMN verification_token TEXT DEFAULT NULL');
+  db.exec('UPDATE usuarios SET is_verified = 1'); // Setear los existentes a 1
+} catch {}
+try {
+  db.exec(`CREATE TABLE IF NOT EXISTS curso_invitaciones (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    curso_id INTEGER NOT NULL REFERENCES cursos(id) ON DELETE CASCADE,
+    email TEXT NOT NULL,
+    token TEXT NOT NULL UNIQUE,
+    usada INTEGER DEFAULT 0,
+    created_at TEXT DEFAULT (datetime('now', 'localtime'))
+  )`);
+} catch {}
 
 
 // ─── Asegurar Academia Principal siempre ──────────────────────────────────────
@@ -153,8 +185,8 @@ if (totalUsuarios.c === 0) {
   ];
 
   const insertUser = db.prepare(`
-    INSERT INTO usuarios (nombre, email, password_hash, rol, bio, avatar_color, academia_id)
-    VALUES (?, ?, ?, ?, ?, ?, 1)
+    INSERT INTO usuarios (nombre, email, password_hash, rol, bio, avatar_color, academia_id, is_verified)
+    VALUES (?, ?, ?, ?, ?, ?, 1, 1)
   `);
 
   // 1. Crear SUPERADMIN (Plataforma/SaaS) - Usa bcrypt 12 rounds por seguridad

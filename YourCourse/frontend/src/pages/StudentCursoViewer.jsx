@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import { PlayCircle, CheckCircle, MessageSquare, BookOpen, ChevronLeft } from 'lucide-react';
 import { useT } from '../contexts/I18nContext';
+import ReactPlayer from 'react-player';
 
 export default function StudentCursoViewer() {
   const t = useT();
@@ -58,16 +59,17 @@ export default function StudentCursoViewer() {
         {/* Main Content Area (Video + Tabs) */}
         <main className="flex-1 flex flex-col overflow-y-auto">
           {/* Video Player */}
-          <div className="bg-black aspect-video w-full relative group">
+          <div className="bg-black w-full relative group" style={{ paddingTop: '56.25%' }}>
             {leccionActiva?.video_url ? (
-              <video 
-                src={leccionActiva.video_url} 
-                controls 
-                className="w-full h-full object-contain"
-                controlsList="nodownload"
+              <ReactPlayer
+                url={leccionActiva.video_url}
+                controls={true}
+                width="100%"
+                height="100%"
+                className="absolute top-0 left-0"
               />
             ) : (
-              <div className="w-full h-full flex items-center justify-center text-gray-500 flex-col gap-4">
+              <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center text-gray-500 flex-col gap-4">
                 <PlayCircle size={64} className="hover-scale" />
                 <p>{t('viewer.noVideo')}</p>
               </div>

@@ -6,7 +6,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import {
   ArrowLeft, BookOpen, Users, Clock, ChevronUp, ChevronDown,
   Upload, Trash2, Play, Edit3, Check, X, Plus, Loader2,
-  AlertCircle, Video, Film, FileText, Download, Eye, GraduationCap,
+  AlertCircle, Video, Film, FileText, Download, Eye, GraduationCap, Mail, Send
 } from 'lucide-react';
 import { api } from '../services/api';
 import { useT } from '../contexts/I18nContext';
@@ -32,6 +32,18 @@ function EstadoBadge({ estado }) {
         : 'bg-white/20 text-white/80'
     }`}>
       {estado === 'publicado' ? t('creator.badgePublished') : t('creator.badgeDraft')}
+    </span>
+  );
+}
+
+function VisibilidadBadge({ visibilidad }) {
+  return (
+    <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${
+      visibilidad === 'publico'
+        ? 'bg-blue-500/30 text-blue-100'
+        : 'bg-gray-500/30 text-gray-100'
+    }`}>
+      {visibilidad === 'publico' ? 'Público' : 'Privado'}
     </span>
   );
 }
@@ -326,7 +338,7 @@ export default function CursoDetalle() {
   const { id }   = useParams();
   const navigate = useNavigate();
   const t = useT();
-  const [tab,         setTab]         = useState('lecciones'); // 'lecciones' | 'ejercicios'
+  const [tab,         setTab]         = useState('lecciones'); // 'lecciones' | 'ejercicios' | 'estudiantes'
   const [curso,       setCurso]       = useState(null);
   const [lecciones,   setLecciones]   = useState([]);
   const [ejercicios,  setEjercicios]  = useState([]);
@@ -335,6 +347,9 @@ export default function CursoDetalle() {
   const [previewUrl,  setPreviewUrl]  = useState(null);
   const [panelOpen,   setPanelOpen]   = useState(false);
   const [reordering,  setReordering]  = useState(false);
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [inviting,    setInviting]    = useState(false);
+  const [inviteMsg,   setInviteMsg]   = useState({ type: '', text: '' });
 
   const fetchCurso = useCallback(async () => {
     setLoading(true); setError('');
@@ -435,7 +450,10 @@ export default function CursoDetalle() {
         <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 20% 80%, white 1px, transparent 1px)', backgroundSize: '25px 25px' }} />
         <div className="relative flex flex-wrap items-start justify-between gap-4">
           <div>
-            <EstadoBadge estado={curso.estado} />
+            <div className="flex gap-2">
+              <EstadoBadge estado={curso.estado} />
+              <VisibilidadBadge visibilidad={curso.visibilidad} />
+            </div>
             <h3 className="text-xl font-black mt-2 leading-tight">{curso.titulo}</h3>
             {curso.descripcion && <p className="text-white/70 text-sm mt-1 line-clamp-2">{curso.descripcion}</p>}
           </div>
@@ -456,6 +474,10 @@ export default function CursoDetalle() {
         <button onClick={() => { setTab('ejercicios'); setPanelOpen(false); }}
           className={`flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-semibold transition-all ${tab === 'ejercicios' ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'}`}>
           <FileText size={16} /> {t('creator.exercises')} <span className="text-xs opacity-60 ml-1">({ejercicios.length})</span>
+        </button>
+        <button onClick={() => { setTab('estudiantes'); setPanelOpen(false); setInviteMsg({ type: '', text: '' }); }}
+          className={`flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-semibold transition-all ${tab === 'estudiantes' ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'}`}>
+          <Users size={16} /> Estudiantes
         </button>
       </div>
 
@@ -559,6 +581,68 @@ export default function CursoDetalle() {
                 ))}
               </div>
               <p className="text-xs text-rose-600 dark:text-rose-300 leading-relaxed mt-2">{t('creator.studentsCanDownload')}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── TAB ESTUDIANTES / INVITACIONES ──────────────────────────────────── */}
+      {tab === 'estudiantes' && (
+        <div className="grid grid-cols-1 xl:grid-cols-5 gap-6">
+          <div className="xl:col-span-3 space-y-4">
+            <h3 className="text-base font-bold text-gray-900 dark:text-white flex items-center gap-2">
+              <Users size={18} className="text-primary-500" /> Gestión de Estudiantes
+            </h3>
+            <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6">
+              <h4 className="text-sm font-bold text-gray-900 dark:text-white mb-2">Invitar Estudiante</h4>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                Envía una invitación por correo. Si el estudiante no tiene cuenta, se le pedirá crear una y será inscrito automáticamente a este curso al terminar.
+              </p>
+              
+              <form onSubmit={async (e) => {
+                e.preventDefault();
+                if (!inviteEmail.trim()) return;
+                setInviting(true); setInviteMsg({ type: '', text: '' });
+                try {
+                  const res = await api.post('/invitaciones/enviar', { curso_id: id, email: inviteEmail.trim() });
+                  setInviteMsg({ type: 'success', text: res.message });
+                  setInviteEmail('');
+                } catch (err) {
+                  setInviteMsg({ type: 'error', text: err.message });
+                } finally {
+                  setInviting(false);
+                }
+              }} className="flex gap-2">
+                <div className="relative flex-1">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Mail size={16} className="text-gray-400" />
+                  </div>
+                  <input type="email" required placeholder="correo@estudiante.com" value={inviteEmail} onChange={e => setInviteEmail(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 transition" />
+                </div>
+                <button type="submit" disabled={inviting}
+                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-500 text-white font-semibold text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                  {inviting ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
+                  Enviar Invitación
+                </button>
+              </form>
+              
+              {inviteMsg.text && (
+                <div className={`mt-4 p-3 rounded-lg text-sm flex items-center gap-2 ${inviteMsg.type === 'success' ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400' : 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400'}`}>
+                  {inviteMsg.type === 'success' ? <Check size={16} /> : <AlertCircle size={16} />}
+                  {inviteMsg.text}
+                </div>
+              )}
+            </div>
+          </div>
+          <div className="xl:col-span-2 space-y-4">
+            <div className="bg-primary-50 dark:bg-primary-900/10 border border-primary-200 dark:border-primary-800 rounded-2xl p-4">
+              <p className="text-xs font-semibold text-primary-700 dark:text-primary-400 mb-1">💡 Consejos</p>
+              <ul className="text-xs text-primary-600 dark:text-primary-300 leading-relaxed list-disc list-inside space-y-1">
+                <li>Usa las invitaciones para regalar acceso a cursos de pago.</li>
+                <li>Los invitados reciben un enlace único de un solo uso.</li>
+                <li>Si configuras un curso como "Privado", esta es la única forma de que puedan entrar al curso.</li>
+              </ul>
             </div>
           </div>
         </div>

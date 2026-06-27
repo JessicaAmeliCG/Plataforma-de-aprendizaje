@@ -26,52 +26,10 @@ function extIcon(url = '') {
   return { ext: ext || 'FILE', color: colors[ext] || colors.TXT };
 }
 
+import ReactPlayer from 'react-player';
+
 // ─── Reproductor de video principal ──────────────────────────────────────────
 function VideoPlayer({ leccion, onEnded }) {
-  const videoRef = useRef(null);
-  const [playing, setPlaying] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [duration, setDuration] = useState(0);
-  const [currentTime, setCurrentTime] = useState(0);
-
-  useEffect(() => {
-    // Reiniciar al cambiar de lección
-    setPlaying(false);
-    setProgress(0);
-    setCurrentTime(0);
-    if (videoRef.current) {
-      videoRef.current.load();
-    }
-  }, [leccion?.id]);
-
-  const formatTime = (s) => {
-    if (!s || isNaN(s)) return '0:00';
-    const m = Math.floor(s / 60);
-    const sec = Math.floor(s % 60);
-    return `${m}:${sec.toString().padStart(2, '0')}`;
-  };
-
-  const handleTimeUpdate = () => {
-    if (!videoRef.current) return;
-    const ct = videoRef.current.currentTime;
-    const dur = videoRef.current.duration || 1;
-    setCurrentTime(ct);
-    setProgress((ct / dur) * 100);
-  };
-
-  const handleSeek = (e) => {
-    if (!videoRef.current || !duration) return;
-    const rect = e.currentTarget.getBoundingClientRect();
-    const ratio = (e.clientX - rect.left) / rect.width;
-    videoRef.current.currentTime = ratio * duration;
-  };
-
-  const togglePlay = () => {
-    if (!videoRef.current) return;
-    if (playing) { videoRef.current.pause(); setPlaying(false); }
-    else { videoRef.current.play().catch(() => {}); setPlaying(true); }
-  };
-
   if (!leccion?.video_url) {
     return (
       <div className="w-full aspect-video bg-gray-900 rounded-2xl flex flex-col items-center justify-center gap-4">
@@ -82,44 +40,15 @@ function VideoPlayer({ leccion, onEnded }) {
   }
 
   return (
-    <div className="w-full rounded-2xl overflow-hidden bg-black shadow-2xl">
-      <video
-        ref={videoRef}
-        src={leccion.video_url}
-        className="w-full aspect-video object-contain bg-black"
-        onTimeUpdate={handleTimeUpdate}
-        onLoadedMetadata={() => setDuration(videoRef.current?.duration || 0)}
-        onEnded={() => { setPlaying(false); onEnded?.(); }}
-        onPlay={() => setPlaying(true)}
-        onPause={() => setPlaying(false)}
-        onClick={togglePlay}
-        style={{ cursor: 'pointer' }}
+    <div className="w-full rounded-2xl overflow-hidden bg-black shadow-2xl relative pt-[56.25%]">
+      <ReactPlayer
+        url={leccion.video_url}
+        controls={true}
+        width="100%"
+        height="100%"
+        className="absolute top-0 left-0"
+        onEnded={onEnded}
       />
-      {/* Controles personalizados */}
-      <div className="bg-gray-950 px-4 py-3 space-y-2">
-        {/* Barra de progreso clicable */}
-        <div
-          className="w-full h-1.5 bg-gray-800 rounded-full cursor-pointer group"
-          onClick={handleSeek}
-        >
-          <div
-            className="h-1.5 bg-gradient-to-r from-primary-500 to-primary-500 rounded-full relative transition-all"
-            style={{ width: `${progress}%` }}
-          >
-            <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3.5 h-3.5 rounded-full bg-white shadow-md opacity-0 group-hover:opacity-100 transition-opacity" />
-          </div>
-        </div>
-        {/* Botones */}
-        <div className="flex items-center gap-3">
-          <button onClick={togglePlay}
-            className="w-9 h-9 rounded-xl bg-primary-600 hover:bg-primary-500 flex items-center justify-center text-white transition-all active:scale-95 shadow-lg shadow-primary-500/20">
-            {playing ? <Pause size={16} fill="white" /> : <Play size={16} fill="white" />}
-          </button>
-          <span className="text-xs text-gray-400 font-mono tabular-nums">
-            {formatTime(currentTime)} / {formatTime(duration)}
-          </span>
-        </div>
-      </div>
     </div>
   );
 }

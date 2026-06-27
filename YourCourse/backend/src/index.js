@@ -64,6 +64,8 @@ app.use('/api/estudiantes',        require('./routes/estudiantes'));
 app.use('/api/comunidad',          require('./routes/comunidad'));
 app.use('/api/analiticas',         require('./routes/analiticas'));
 app.use('/api/notificaciones',     require('./routes/notificaciones'));
+app.use('/api/pagos',              require('./routes/pagos'));
+app.use('/api/invitaciones',       require('./routes/invitaciones'));
 
 
 

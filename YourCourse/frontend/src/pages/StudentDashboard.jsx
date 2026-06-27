@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { BookOpen, AlertCircle, Plus, Layers, GraduationCap } from 'lucide-react';
 import { api } from '../services/api';
 import useAuthStore from '../stores/authStore';
@@ -56,6 +56,8 @@ export default function StudentDashboard() {
   const [cursosPublicos, setCursosPublicos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [verificandoPago, setVerificandoPago] = useState(false);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -77,13 +79,44 @@ export default function StudentDashboard() {
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
-  const handleEnroll = async (cursoId) => {
+  // Verificar pago si venimos de Stripe
+  useEffect(() => {
+    const session_id = searchParams.get('session_id');
+    if (session_id) {
+      setVerificandoPago(true);
+      api.get(`/pagos/success?session_id=${session_id}`)
+        .then(res => {
+          alert(res.message || 'Pago verificado correctamente.');
+          searchParams.delete('session_id');
+          setSearchParams(searchParams);
+          fetchData();
+        })
+        .catch(err => {
+          alert(err.message || 'Error al verificar el pago.');
+          searchParams.delete('session_id');
+          setSearchParams(searchParams);
+        })
+        .finally(() => {
+          setVerificandoPago(false);
+        });
+    }
+  }, [searchParams, setSearchParams, fetchData]);
+
+  const handleEnroll = async (curso) => {
     try {
-      await api.post('/estudiantes/inscribir', { curso_id: cursoId });
-      // Refetch
-      fetchData();
+      if (curso.modelo_negocio === 'gratis' || curso.precio <= 0) {
+        // Inscripción directa
+        await api.post('/estudiantes/inscribir', { curso_id: curso.id });
+        fetchData();
+      } else {
+        // Pago con Stripe
+        const res = await api.post('/pagos/create-checkout-session', { curso_id: curso.id });
+        if (res.url) {
+          window.location.href = res.url; // Redirigir a Stripe
+        }
+      }
     } catch (err) {
-      alert(err.message);
+      alert(err.message || 'Error al procesar la inscripción.');
     }
   };
 
@@ -105,6 +138,12 @@ export default function StudentDashboard() {
         <div className="flex items-center gap-2 p-4 rounded-2xl bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm">
           <AlertCircle size={16} />{error}
           <button onClick={fetchData} className="ml-auto underline text-xs">Reintentar</button>
+        </div>
+      )}
+
+      {verificandoPago && (
+        <div className="flex items-center gap-2 p-4 rounded-2xl bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 text-sm">
+          <AlertCircle size={16} className="animate-pulse" /> Verificando pago con Stripe, por favor espera...
         </div>
       )}
 
@@ -143,7 +182,7 @@ export default function StudentDashboard() {
             ) : (
                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                  {disponibles.map(c => (
-                   <CursoCard key={c.id} curso={c} isEnrolled={false} onEnroll={handleEnroll} />
+                   <CursoCard key={c.id} curso={c} isEnrolled={false} onEnroll={() => handleEnroll(c)} />
                  ))}
                </div>
             )}
