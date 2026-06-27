@@ -26,20 +26,35 @@ function auth(req, res, next) {
 router.get('/', auth, (req, res) => {
   const { tipo = 'all' } = req.query;
 
-  const whereClause = tipo === 'all' ? '' : `WHERE p.tipo = '${tipo === 'resena' ? 'resena' : 'recomendacion'}'`;
+  // Whitelist explícita — ningún valor del usuario se interpola en el SQL
+  const TIPOS_VALIDOS = ['resena', 'recomendacion'];
+  const tipoFiltrado = TIPOS_VALIDOS.includes(tipo) ? tipo : null;
 
-  const posts = db.prepare(`
-    SELECT
-      p.*,
-      u.nombre AS autor_nombre,
-      u.avatar_color AS autor_color,
-      c.titulo AS curso_titulo
-    FROM comunidad_posts p
-    JOIN usuarios u ON u.id = p.usuario_id
-    LEFT JOIN cursos c ON c.id = p.curso_id
-    ${whereClause}
-    ORDER BY p.created_at DESC
-  `).all();
+  // Dos prepared statements separados: con filtro o sin filtro
+  const posts = tipoFiltrado
+    ? db.prepare(`
+        SELECT
+          p.*,
+          u.nombre AS autor_nombre,
+          u.avatar_color AS autor_color,
+          c.titulo AS curso_titulo
+        FROM comunidad_posts p
+        JOIN usuarios u ON u.id = p.usuario_id
+        LEFT JOIN cursos c ON c.id = p.curso_id
+        WHERE p.tipo = ?
+        ORDER BY p.created_at DESC
+      `).all(tipoFiltrado)
+    : db.prepare(`
+        SELECT
+          p.*,
+          u.nombre AS autor_nombre,
+          u.avatar_color AS autor_color,
+          c.titulo AS curso_titulo
+        FROM comunidad_posts p
+        JOIN usuarios u ON u.id = p.usuario_id
+        LEFT JOIN cursos c ON c.id = p.curso_id
+        ORDER BY p.created_at DESC
+      `).all();
 
   // Cargar respuestas para cada post
   const getRespuestas = db.prepare(`
