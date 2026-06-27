@@ -128,9 +128,14 @@ export default function LoginPage() {
             </div>
 
             <div className="space-y-1.5">
-              <label htmlFor="password" className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                {t('login.password')}
-              </label>
+              <div className="flex items-center justify-between">
+                <label htmlFor="password" className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                  {t('login.password')}
+                </label>
+                <Link to="/forgot-password" className="text-xs font-semibold text-primary-600 dark:text-primary-400 hover:underline">
+                  ¿Olvidaste tu contraseña?
+                </Link>
+              </div>
               <div className="relative">
                 <input id="password" type={showPass ? 'text' : 'password'} autoComplete="current-password"
                   value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••"

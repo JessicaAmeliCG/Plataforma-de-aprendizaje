@@ -11,11 +11,16 @@ import AnaliticasPage   from './pages/AnaliticasPage'
 import AjustesPage      from './pages/AjustesPage'
 import LoginPage        from './pages/LoginPage'
 import RegisterPage     from './pages/RegisterPage'
+import ForgotPassword   from './pages/ForgotPassword'
+import ResetPassword    from './pages/ResetPassword'
+import VerifyEmail      from './pages/VerifyEmail'
 import StudentLayout    from './layouts/StudentLayout'
 import StudentDashboard from './pages/StudentDashboard'
 import StudentCursoViewer from './pages/StudentCursoViewer'
 import useAuthStore     from './stores/authStore'
 import PageTransition   from './components/PageTransition'
+import LandingPage      from './pages/LandingPage'
+import InvitacionPage   from './pages/InvitacionPage'
 
 function PrivateRoute({ children }) {
   const token = useAuthStore(s => s.token);
@@ -29,9 +34,13 @@ function App() {
       <PageTransition>
         <Routes>
           {/* Públicas */}
-          <Route path="/"         element={<Navigate to="/login" replace />} />
-          <Route path="/login"    element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/"                 element={<LandingPage />} />
+          <Route path="/login"            element={<LoginPage />} />
+          <Route path="/register"         element={<RegisterPage />} />
+          <Route path="/forgot-password"  element={<ForgotPassword />} />
+          <Route path="/reset-password"   element={<ResetPassword />} />
+          <Route path="/verify-email"     element={<VerifyEmail />} />
+          <Route path="/invitacion"       element={<InvitacionPage />} />
 
           {/* Panel del Creador — protegido */}
           <Route path="/creator" element={<PrivateRoute><CreatorLayout /></PrivateRoute>}>

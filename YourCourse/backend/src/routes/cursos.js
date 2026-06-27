@@ -100,7 +100,7 @@ router.get('/publicos', (req, res) => {
     FROM cursos c
     LEFT JOIN inscripciones i ON i.curso_id = c.id
     LEFT JOIN usuarios u ON u.id = c.creator_id
-    WHERE c.estado = 'publicado'
+    WHERE c.estado = 'publicado' AND c.visibilidad = 'publico'
     GROUP BY c.id
     ORDER BY c.created_at DESC
   `).all();
@@ -134,6 +134,7 @@ router.post('/', auth, soloCreador, (req, res) => {
     precio         = 0,
     modelo_negocio = 'gratis',
     estado         = 'borrador',
+    visibilidad    = 'publico',
     modulos_count  = 0,
     duracion       = '',
     gradient_class = 'from-violet-600 to-indigo-700',
@@ -149,14 +150,15 @@ router.post('/', auth, soloCreador, (req, res) => {
   }
 
   const result = db.prepare(`
-    INSERT INTO cursos (titulo, descripcion, precio, modelo_negocio, estado, creator_id, modulos_count, duracion, gradient_class)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO cursos (titulo, descripcion, precio, modelo_negocio, estado, visibilidad, creator_id, modulos_count, duracion, gradient_class)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `).run(
     titulo.trim(),
     descripcion.trim(),
     modelo_negocio === 'gratis' ? 0 : Number(precio),
     modelo_negocio,
     estado,
+    visibilidad,
     req.user.id,
     Number(modulos_count),
     duracion.trim(),
@@ -172,7 +174,7 @@ router.patch('/:id', auth, soloCreador, (req, res) => {
   const curso = getCursoPropio(req.params.id, req.user.id);
   if (!curso) return res.status(404).json({ error: { message: 'Curso no encontrado.' } });
 
-  const { titulo, descripcion, precio, modelo_negocio, estado, modulos_count, duracion, gradient_class } = req.body;
+  const { titulo, descripcion, precio, modelo_negocio, estado, visibilidad, modulos_count, duracion, gradient_class } = req.body;
 
   db.prepare(`
     UPDATE cursos SET
@@ -181,11 +183,12 @@ router.patch('/:id', auth, soloCreador, (req, res) => {
       precio         = COALESCE(?, precio),
       modelo_negocio = COALESCE(?, modelo_negocio),
       estado         = COALESCE(?, estado),
+      visibilidad    = COALESCE(?, visibilidad),
       modulos_count  = COALESCE(?, modulos_count),
       duracion       = COALESCE(?, duracion),
       gradient_class = COALESCE(?, gradient_class)
     WHERE id = ?
-  `).run(titulo, descripcion, precio, modelo_negocio, estado, modulos_count, duracion, gradient_class, req.params.id);
+  `).run(titulo, descripcion, precio, modelo_negocio, estado, visibilidad, modulos_count, duracion, gradient_class, req.params.id);
 
   const updated = db.prepare(`
     SELECT *, (SELECT COUNT(*) FROM inscripciones WHERE curso_id = ?) as estudiantes

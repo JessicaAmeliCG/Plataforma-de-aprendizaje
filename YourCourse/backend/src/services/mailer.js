@@ -4,26 +4,43 @@
  */
 const nodemailer = require('nodemailer');
 
-// Si no hay credenciales, el servicio simplemente no envía emails
-const HAS_MAIL = !!(process.env.MAIL_USER && process.env.MAIL_PASS);
-
+// Si no hay credenciales, usamos Ethereal (cuenta de prueba gratuita)
+let HAS_MAIL = !!(process.env.MAIL_USER && process.env.MAIL_PASS);
 let transporter = null;
-if (HAS_MAIL) {
-  transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: process.env.MAIL_USER,
-      pass: process.env.MAIL_PASS, // App Password de Gmail (no la contraseña normal)
-    },
-  });
-  // Verificar conexión al inicio
-  transporter.verify((err) => {
-    if (err) console.error('❌ Email config error:', err.message);
-    else     console.log(`✅ Email listo — ${process.env.MAIL_USER}`);
-  });
-} else {
-  console.log('ℹ️  Email no configurado (MAIL_USER / MAIL_PASS vacíos). Los emails no se enviarán.');
+
+async function initMailer() {
+  if (HAS_MAIL) {
+    transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.MAIL_USER,
+        pass: process.env.MAIL_PASS, // App Password de Gmail (no la contraseña normal)
+      },
+    });
+    console.log(`✅ Email listo — ${process.env.MAIL_USER}`);
+  } else {
+    console.log('ℹ️  Email no configurado (MAIL_USER / MAIL_PASS vacíos). Creando cuenta de prueba Ethereal...');
+    try {
+      const testAccount = await nodemailer.createTestAccount();
+      transporter = nodemailer.createTransport({
+        host: 'smtp.ethereal.email',
+        port: 587,
+        secure: false, // true para port 465, false para otros
+        auth: {
+          user: testAccount.user, // Generado por Ethereal
+          pass: testAccount.pass, // Generado por Ethereal
+        },
+      });
+      HAS_MAIL = true;
+      process.env.MAIL_USER = testAccount.user; // Para el 'From'
+      console.log(`✅ Ethereal Mail listo — ${testAccount.user}`);
+    } catch (err) {
+      console.error('❌ Error creando cuenta Ethereal:', err.message);
+    }
+  }
 }
+
+initMailer();
 
 // ─── Plantilla base HTML ──────────────────────────────────────────────────────
 function baseTemplate({ title, body, btnText, btnUrl }) {
@@ -71,11 +88,15 @@ async function sendMail({ to, subject, html }) {
     return;
   }
   try {
-    await transporter.sendMail({
-      from: `"YourCourse 🎓" <${process.env.MAIL_USER}>`,
+    const info = await transporter.sendMail({
+      from: `"YourCourse 🎓" <${process.env.MAIL_USER || 'no-reply@yourcourse.mx'}>`,
       to, subject, html,
     });
     console.log(`✅ Email enviado → ${to}: ${subject}`);
+    // Si estamos usando Ethereal, mostrar la URL para previsualizar el correo
+    if (info.messageId && transporter.options.host === 'smtp.ethereal.email') {
+      console.log(`👀 Preview URL: ${nodemailer.getTestMessageUrl(info)}`);
+    }
   } catch (err) {
     console.error(`❌ Error al enviar email a ${to}:`, err.message);
   }
@@ -171,4 +192,63 @@ async function sendNewReplyAlert({ destinatarioEmail, destinatarioNombre, autorN
   await sendMail({ to: destinatarioEmail, subject: `💬 ${autorNombre} respondió en tu post`, html });
 }
 
-module.exports = { sendWelcomeEmail, sendNewStudentAlert, sendNewComunidadAlert, sendNewReplyAlert };
+/** Recuperación de contraseña */
+async function sendPasswordResetEmail({ email, nombre, token }) {
+  const resetUrl = `http://localhost:5173/reset-password?token=${token}`;
+  const html = baseTemplate({
+    title: 'Recuperación de contraseña',
+    body: `
+      <h2 style="color:#1f2937;font-size:22px;margin:0 0 12px;">¡Hola, ${nombre}! 👋</h2>
+      <p style="color:#6b7280;font-size:15px;line-height:1.6;margin:0 0 16px;">
+        Recibimos una solicitud para restablecer tu contraseña en <strong>YourCourse</strong>.
+      </p>
+      <p style="color:#6b7280;font-size:15px;line-height:1.6;margin:0 0 16px;">
+        Haz clic en el siguiente botón para crear una nueva contraseña. Este enlace expira en 1 hora.
+      </p>
+    `,
+    btnText: 'Restablecer contraseña',
+    btnUrl:  resetUrl,
+  });
+  await sendMail({ to: email, subject: 'Recupera tu contraseña 🔐', html });
+}
+
+/** Verificación de Email */
+async function sendVerificationEmail({ email, nombre, token }) {
+  const verifyUrl = `http://localhost:5173/verify-email?token=${token}`;
+  const html = baseTemplate({
+    title: 'Verifica tu cuenta',
+    body: `
+      <h2 style="color:#1f2937;font-size:22px;margin:0 0 12px;">¡Hola, ${nombre}! 👋</h2>
+      <p style="color:#6b7280;font-size:15px;line-height:1.6;margin:0 0 16px;">
+        Gracias por registrarte en <strong>YourCourse</strong>. Para empezar a usar la plataforma, necesitamos verificar tu correo electrónico.
+      </p>
+      <p style="color:#6b7280;font-size:15px;line-height:1.6;margin:0 0 16px;">
+        Haz clic en el siguiente botón para verificar tu cuenta.
+      </p>
+    `,
+    btnText: 'Verificar correo',
+    btnUrl:  verifyUrl,
+  });
+  await sendMail({ to: email, subject: 'Verifica tu cuenta de correo 📧', html });
+}
+
+/** Invitación a Curso Privado */
+async function sendCourseInvitation({ email, cursoTitulo, inviteUrl }) {
+  const html = baseTemplate({
+    title: 'Invitación a curso privado',
+    body: `
+      <h2 style="color:#1f2937;font-size:22px;margin:0 0 12px;">¡Te han invitado a un curso! 🎉</h2>
+      <p style="color:#6b7280;font-size:15px;line-height:1.6;margin:0 0 16px;">
+        El creador del curso <strong>"${cursoTitulo}"</strong> te ha enviado una invitación exclusiva para unirte a su curso.
+      </p>
+      <p style="color:#6b7280;font-size:15px;line-height:1.6;margin:0 0 16px;">
+        Haz clic en el siguiente botón para aceptar la invitación y acceder al contenido.
+      </p>
+    `,
+    btnText: 'Aceptar Invitación',
+    btnUrl:  inviteUrl,
+  });
+  await sendMail({ to: email, subject: `Invitación exclusiva: ${cursoTitulo} 🎉`, html });
+}
+
+module.exports = { sendWelcomeEmail, sendNewStudentAlert, sendNewComunidadAlert, sendNewReplyAlert, sendPasswordResetEmail, sendVerificationEmail, sendCourseInvitation };

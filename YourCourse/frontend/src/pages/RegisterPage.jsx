@@ -6,7 +6,7 @@
  * - localStorage unificado: yc_tema (mismo que App.jsx / AjustesPage)
  */
 import { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { GraduationCap, Eye, EyeOff, Moon, Sun, UserPlus, Loader2, Check, X } from 'lucide-react';
 import { api } from '../services/api';
 import useAuthStore from '../stores/authStore';
@@ -23,40 +23,45 @@ const REGLAS_PWD = [
 
 export default function RegisterPage() {
   const t = useT();
-  const [form,     setForm]     = useState({ nombre: '', email: '', password: '', confirm: '' });
+  const navigate = useNavigate();
+  const login = useAuthStore((s) => s.login);
+  const [searchParams] = useSearchParams();
+
+  const [nombre, setNombre] = useState('');
+  const [email, setEmail] = useState(searchParams.get('email') || '');
+  const [password, setPassword] = useState('');
+  const [confirm, setConfirm] = useState('');
   const [showPass, setShowPass] = useState(false);
   const [loading,  setLoading]  = useState(false);
   const [error,    setError]    = useState('');
+  const invitationToken = searchParams.get('token');
   const [darkMode, setDarkMode] = useState(
     () => localStorage.getItem('yc_tema') === 'dark' ||
           (!localStorage.getItem('yc_tema') && window.matchMedia('(prefers-color-scheme: dark)').matches)
   );
 
   const setAuth  = useAuthStore(s => s.setAuth);
-  const navigate = useNavigate();
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', darkMode);
     localStorage.setItem('yc_tema', darkMode ? 'dark' : 'light');
   }, [darkMode]);
 
-  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
-    if (!form.nombre || !form.email || !form.password) {
+    if (!nombre || !email || !password) {
       setError(t('register.errorRequired'));
       return;
     }
-    if (form.password !== form.confirm) {
+    if (password !== confirm) {
       setError(t('register.errorMismatch'));
       return;
     }
 
     // Validar todas las reglas de la política
-    const reglasFallidas = REGLAS_PWD.filter(r => !r.test(form.password));
+    const reglasFallidas = REGLAS_PWD.filter(r => !r.test(password));
     if (reglasFallidas.length > 0) {
       setError(t('register.errorPolicy', { rule: t(reglasFallidas[0].labelKey) }));
       return;
@@ -64,21 +69,26 @@ export default function RegisterPage() {
 
     try {
       setLoading(true);
-      const res = await api.post('/auth/register', {
-        nombre:   form.nombre.trim(),
-        email:    form.email.trim(),
-        password: form.password,
+      const res = await api.post('/auth/register', { 
+        nombre: nombre.trim(), 
+        email: email.trim(), 
+        password,
+        invitationToken: invitationToken || undefined
       });
-      setAuth(res.user, res.token);
-      navigate('/student/dashboard');
+      login(res.user, res.token);
+      if (invitationToken) {
+        navigate('/student/dashboard');
+      } else {
+        navigate('/verify-email?token=' + (res.user.verification_token || ''));
+      }
     } catch (err) {
-      setError(err.message);
+      setError(err.message || 'Error en el registro');
     } finally {
       setLoading(false);
     }
   };
 
-  const pwdValida = form.password.length > 0 && REGLAS_PWD.every(r => r.test(form.password));
+  const pwdValida = password.length > 0 && REGLAS_PWD.every(r => r.test(password));
 
   const INPUT = "w-full px-4 py-3 rounded-xl text-sm bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all";
 
@@ -110,21 +120,21 @@ export default function RegisterPage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-1.5">
               <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">{t('register.fullName')}</label>
-              <input type="text" value={form.nombre} onChange={e => set('nombre', e.target.value)}
+              <input type="text" value={nombre} onChange={e => setNombre(e.target.value)}
                 placeholder={t('settings.fullName')} className={INPUT} />
             </div>
 
             <div className="space-y-1.5">
               <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">{t('register.email')}</label>
-              <input type="email" value={form.email} onChange={e => set('email', e.target.value)}
+              <input type="email" value={email} onChange={e => setEmail(e.target.value)}
                 placeholder="tu@email.com" className={INPUT} />
             </div>
 
             <div className="space-y-1.5">
               <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">{t('register.password')}</label>
               <div className="relative">
-                <input type={showPass ? 'text' : 'password'} value={form.password}
-                  onChange={e => set('password', e.target.value)}
+                <input type={showPass ? 'text' : 'password'} value={password}
+                  onChange={e => setPassword(e.target.value)}
                   placeholder={t('register.minChars')} className={`${INPUT} pr-11`} />
                 <button type="button" onClick={() => setShowPass(p => !p)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
@@ -133,10 +143,10 @@ export default function RegisterPage() {
               </div>
 
               {/* Checklist de política en tiempo real */}
-              {form.password.length > 0 && (
+              {password.length > 0 && (
                 <ul className="mt-2 space-y-1 p-3 rounded-xl bg-gray-50 dark:bg-gray-800/60 border border-gray-100 dark:border-gray-700">
                   {REGLAS_PWD.map(regla => {
-                    const cumplida = regla.test(form.password);
+                    const cumplida = regla.test(password);
                     return (
                       <li key={regla.id} className="flex items-center gap-2 text-xs">
                         <span className={`w-4 h-4 rounded-full flex items-center justify-center shrink-0 transition-all ${
@@ -159,7 +169,7 @@ export default function RegisterPage() {
 
             <div className="space-y-1.5">
               <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">{t('register.confirmPwd')}</label>
-              <input type="password" value={form.confirm} onChange={e => set('confirm', e.target.value)}
+              <input type="password" value={confirm} onChange={e => setConfirm(e.target.value)}
                 placeholder={t('register.repeatPwd')} className={INPUT} />
             </div>
 
@@ -168,7 +178,7 @@ export default function RegisterPage() {
             )}
 
             <button id="btn-register" type="submit"
-              disabled={loading || !pwdValida || !form.password}
+              disabled={loading || !pwdValida || !password}
               className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-primary-600 to-primary-600 hover:from-primary-500 hover:to-primary-500 disabled:opacity-60 text-white font-bold text-sm shadow-lg shadow-primary-500/30 transition-all active:scale-95 mt-2"
             >
               {loading
