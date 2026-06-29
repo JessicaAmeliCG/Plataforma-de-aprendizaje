@@ -113,11 +113,13 @@ router.get('/:id', auth, (req, res) => {
     SELECT c.*, COUNT(i.id) AS estudiantes
     FROM cursos c
     LEFT JOIN inscripciones i ON i.curso_id = c.id
-    WHERE c.id = ? AND c.creator_id = ?
+    WHERE c.id = ? AND (c.creator_id = ? OR EXISTS (
+      SELECT 1 FROM inscripciones WHERE estudiante_id = ? AND curso_id = c.id
+    ))
     GROUP BY c.id
-  `).get(req.params.id, req.user.id);
+  `).get(req.params.id, req.user.id, req.user.id);
 
-  if (!curso) return res.status(404).json({ error: { message: 'Curso no encontrado.' } });
+  if (!curso) return res.status(404).json({ error: { message: 'Curso no encontrado o sin acceso.' } });
 
   const lecciones = db.prepare(`
     SELECT * FROM lecciones WHERE curso_id = ? ORDER BY orden ASC, id ASC

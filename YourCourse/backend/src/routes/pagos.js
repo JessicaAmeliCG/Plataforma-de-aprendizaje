@@ -146,7 +146,7 @@ router.get('/success', authMiddleware, async (req, res) => {
           usuario_id: curso.creator_id,
           tipo: 'ingreso',
           titulo: 'Nueva venta',
-          mensaje: \`Alguien ha comprado tu curso "\${curso.titulo}".\`,
+          mensaje: `Alguien ha comprado tu curso "${curso.titulo}".`,
           enlace: '/creator/estudiantes'
         });
       }
