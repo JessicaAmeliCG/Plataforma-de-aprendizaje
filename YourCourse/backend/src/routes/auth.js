@@ -21,7 +21,7 @@ const JWT_SECRET  = process.env.JWT_SECRET || 'yourcourse_fallback_secret';
 const JWT_EXPIRES = '7d';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-async function publicUser(u) {
+function publicUser(u) {
   return {
     id:              u.id,
     nombre:          u.nombre,
