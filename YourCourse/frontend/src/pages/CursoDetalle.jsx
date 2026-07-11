@@ -108,7 +108,7 @@ function LeccionRow({ leccion, index, total, onMoveUp, onMoveDown, onDelete, onR
             <button onClick={() => setEditando(true)} title={t('creator.rename')} className="opacity-0 group-hover:opacity-100 p-1 rounded-lg text-gray-400 hover:text-primary-600 hover:bg-primary-100 dark:hover:bg-primary-900/20 transition-all"><Edit3 size={13} /></button>
           </div>
         )}
-        <div className="flex items-center gap-2 mt-1">
+        <div className="flex flex-wrap items-center gap-2 mt-1">
           {leccion.video_url ? (
             <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1"><Video size={10} /> Video local subido</span>
           ) : leccion.iframe_url ? (
@@ -117,6 +117,30 @@ function LeccionRow({ leccion, index, total, onMoveUp, onMoveDown, onDelete, onR
             <span className="text-[11px] text-gray-400 flex items-center gap-1"><Video size={10} /> {t('creator.noVideo')}</span>
           )}
           {leccion.duracion && <span className="text-[11px] text-gray-400">· <Clock size={10} className="inline" /> {leccion.duracion}</span>}
+          {leccion.video_url && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                navigator.clipboard.writeText(window.location.origin + leccion.video_url);
+                alert('¡Enlace de video copiado al portapapeles!');
+              }}
+              className="text-[10px] text-primary-600 dark:text-primary-400 hover:underline flex items-center gap-0.5 ml-2 cursor-pointer font-bold"
+            >
+              (Copiar enlace)
+            </button>
+          )}
+          {leccion.iframe_url && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                navigator.clipboard.writeText(leccion.iframe_url);
+                alert('¡Código iFrame / URL copiado al portapapeles!');
+              }}
+              className="text-[10px] text-primary-600 dark:text-primary-400 hover:underline flex items-center gap-0.5 ml-2 cursor-pointer font-bold"
+            >
+              (Copiar código/URL)
+            </button>
+          )}
         </div>
       </div>
       <button onClick={() => onDelete(leccion.id)} title={t('creator.delete')} className="opacity-0 group-hover:opacity-100 p-2 rounded-xl text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 transition-all shrink-0"><Trash2 size={15} /></button>
@@ -190,7 +214,7 @@ function VideoUploadZone({ cursoId, onSuccess }) {
         <div onDrop={e => { e.preventDefault(); handleFile(e.dataTransfer.files[0]); }} onDragOver={e => e.preventDefault()}
           onClick={() => fileRef.current?.click()}
           className={`border-2 border-dashed rounded-2xl p-6 text-center cursor-pointer transition-all ${archivo ? 'border-primary-400 bg-primary-50 dark:bg-primary-900/10' : 'border-gray-200 dark:border-gray-700 hover:border-primary-400 hover:bg-primary-50/50 dark:hover:bg-primary-900/10'}`}>
-          <input ref={fileRef} type="file" accept="video/*" className="hidden" onChange={e => e.target.files[0] && handleFile(e.target.files[0])} />
+          <input ref={fileRef} type="file" accept="video/mp4,video/webm,video/ogg,video/quicktime,video/x-matroska,video/x-msvideo,.mp4,.webm,.mov,.mkv,.avi" className="hidden" onChange={e => e.target.files[0] && handleFile(e.target.files[0])} />
           {archivo ? (
             <div className="flex flex-col items-center gap-2">
               <Film size={24} className="text-primary-500" />
