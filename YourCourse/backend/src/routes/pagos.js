@@ -8,7 +8,7 @@ const notif = require('../services/notif');
 const JWT_SECRET = process.env.JWT_SECRET || 'yourcourse_fallback_secret';
 
 // Middleware de autenticación
-function authMiddleware(req, res, next) {
+async function authMiddleware(req, res, next) {
   const h = req.headers['authorization'];
   if (!h || !h.startsWith('Bearer '))
     return res.status(401).json({ error: { message: 'No autenticado.' } });
@@ -25,7 +25,7 @@ router.post('/create-checkout-session', authMiddleware, async (req, res) => {
   const { curso_id } = req.body;
   if (!curso_id) return res.status(400).json({ error: { message: 'curso_id es requerido.' } });
 
-  const curso = db.prepare('SELECT * FROM cursos WHERE id = ?').get(curso_id);
+  const curso = await db.get('SELECT * FROM cursos WHERE id = ?', curso_id);
   if (!curso) return res.status(404).json({ error: { message: 'Curso no encontrado.' } });
 
   if (curso.estado !== 'publicado') {
@@ -33,7 +33,7 @@ router.post('/create-checkout-session', authMiddleware, async (req, res) => {
   }
 
   // Verificar si ya está inscrito
-  const inscripcion = db.prepare('SELECT id FROM inscripciones WHERE estudiante_id = ? AND curso_id = ?').get(req.user.id, curso.id);
+  const inscripcion = await db.get('SELECT id FROM inscripciones WHERE estudiante_id = ? AND curso_id = ?', req.user.id, curso.id);
   if (inscripcion) {
     return res.status(400).json({ error: { message: 'Ya estás inscrito en este curso.' } });
   }
@@ -41,7 +41,7 @@ router.post('/create-checkout-session', authMiddleware, async (req, res) => {
   // Si es gratis, inscribir directamente (no debería llegar aquí, pero por seguridad)
   if (curso.modelo_negocio === 'gratis' || curso.precio <= 0) {
     try {
-      db.prepare('INSERT INTO inscripciones (estudiante_id, curso_id) VALUES (?, ?)').run(req.user.id, curso.id);
+      await db.run('INSERT INTO inscripciones (estudiante_id, curso_id) VALUES (?, ?)', req.user.id, curso.id);
       return res.json({ success: true, redirect: `/student/dashboard?success=true&curso_id=${curso.id}` });
     } catch (err) {
       return res.status(500).json({ error: { message: 'Error al inscribir al curso gratuito.' } });
@@ -137,10 +137,10 @@ router.get('/success', authMiddleware, async (req, res) => {
 
     // 4. Inscribir al estudiante
     try {
-      db.prepare('INSERT INTO inscripciones (estudiante_id, curso_id) VALUES (?, ?)').run(estudiante_id, curso_id);
+      await db.run('INSERT INTO inscripciones (estudiante_id, curso_id) VALUES (?, ?)', estudiante_id, curso_id);
       
       // Notificar al creador
-      const curso = db.prepare('SELECT creator_id, titulo FROM cursos WHERE id = ?').get(curso_id);
+      const curso = await db.get('SELECT creator_id, titulo FROM cursos WHERE id = ?', curso_id);
       if (curso) {
         notif.crearNotificacion({
           usuario_id: curso.creator_id,

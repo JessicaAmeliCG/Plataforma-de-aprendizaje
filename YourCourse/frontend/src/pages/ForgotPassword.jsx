@@ -8,6 +8,7 @@ export default function ForgotPassword() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [devResetUrl, setDevResetUrl] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -18,10 +19,14 @@ export default function ForgotPassword() {
     setLoading(true);
     setError('');
     setSuccess('');
+    setDevResetUrl('');
     
     try {
       const res = await api.post('/auth/forgot-password', { email });
       setSuccess(res.message || 'Si el correo existe, recibirás instrucciones.');
+      if (res.devResetUrl) {
+        setDevResetUrl(res.devResetUrl);
+      }
     } catch (err) {
       setError(err.message || 'Ocurrió un error. Intenta de nuevo.');
     } finally {
@@ -43,9 +48,24 @@ export default function ForgotPassword() {
         </p>
 
         {success ? (
-          <div className="bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 p-4 rounded-xl flex items-start gap-3">
-            <CheckCircle size={20} className="shrink-0 mt-0.5" />
-            <p className="text-sm font-medium">{success}</p>
+          <div className="space-y-4">
+            <div className="bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 p-4 rounded-xl flex items-start gap-3">
+              <CheckCircle size={20} className="shrink-0 mt-0.5" />
+              <p className="text-sm font-medium">{success}</p>
+            </div>
+            
+            {devResetUrl && (
+              <div className="bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-850 text-primary-800 dark:text-primary-300 p-5 rounded-2xl space-y-3">
+                <p className="text-xs font-bold uppercase tracking-wider text-primary-600 dark:text-primary-400">🔧 Modo de Desarrollo / Tesis</p>
+                <p className="text-sm text-gray-600 dark:text-gray-450 leading-relaxed">Como estás en desarrollo local con Ethereal Mail, puedes restablecer tu contraseña directamente haciendo clic aquí:</p>
+                <a
+                  href={devResetUrl}
+                  className="inline-block w-full text-center py-2.5 rounded-xl bg-primary-600 hover:bg-primary-500 text-white font-bold text-sm shadow-md transition-all active:scale-95"
+                >
+                  Restablecer Contraseña Directamente
+                </a>
+              </div>
+            )}
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">

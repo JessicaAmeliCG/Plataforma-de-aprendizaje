@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import {
-  LayoutDashboard, MessageSquare, Settings, LogOut, ChevronLeft, ChevronRight,
-  Moon, Sun, GraduationCap, Menu, BookOpen
+  BookOpen, Search, MessageSquare, Settings, LogOut, ChevronLeft, ChevronRight,
+  Moon, Sun, GraduationCap, Menu, Trophy,
 } from 'lucide-react';
 import useAuthStore     from '../stores/authStore';
 import NotificationBell from '../components/NotificationBell';
@@ -32,14 +32,18 @@ export default function StudentLayout() {
   const displayUser = user || { nombre: 'Estudiante', email: '', avatar_color: 'from-primary-500 to-primary-600' };
 
   const NAV_ITEMS = [
-    { to: '/student/dashboard',   label: t('nav.dashboard'),  Icon: LayoutDashboard },
+    { to: '/student/cursos',      label: 'Mis Cursos',        Icon: BookOpen },
+    { to: '/student/buscar',      label: 'Buscar Cursos',     Icon: Search },
     { to: '/student/comunidad',   label: t('nav.community'),  Icon: MessageSquare },
+    { to: '/student/gamificacion',label: 'Mi Progreso 🏆',     Icon: Trophy },
     { to: '/student/ajustes',     label: t('nav.settings'),   Icon: Settings },
   ];
 
   const ROUTE_TITLES = {
-    '/student/dashboard':   t('nav.dashboard'),
+    '/student/cursos':      'Mis Cursos',
+    '/student/buscar':      'Buscar Cursos',
     '/student/comunidad':   t('nav.community'),
+    '/student/gamificacion':'Mi Progreso y Logros',
     '/student/ajustes':     t('nav.settings'),
   };
   const pageTitle = ROUTE_TITLES[location.pathname] ?? 'Portal del Estudiante';

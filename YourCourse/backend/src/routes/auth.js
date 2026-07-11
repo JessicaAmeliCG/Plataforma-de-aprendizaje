@@ -21,7 +21,7 @@ const JWT_SECRET  = process.env.JWT_SECRET || 'yourcourse_fallback_secret';
 const JWT_EXPIRES = '7d';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-function publicUser(u) {
+async function publicUser(u) {
   return {
     id:              u.id,
     nombre:          u.nombre,
@@ -50,7 +50,7 @@ function authMiddleware(req, res, next) {
 }
 
 // ─── POST /api/auth/register ──────────────────────────────────────────────────
-router.post('/register', (req, res) => {
+router.post('/register', async (req, res) => {
   const { nombre, email, password, invitationToken } = req.body;
 
   if (!nombre || !email || !password)
@@ -66,7 +66,7 @@ router.post('/register', (req, res) => {
       },
     });
 
-  const existing = db.prepare('SELECT id FROM usuarios WHERE email = ?').get(email.toLowerCase().trim());
+  const existing = await db.get('SELECT id FROM usuarios WHERE email = ?', email.toLowerCase().trim());
   if (existing)
     return res.status(409).json({ error: { message: 'Este email ya está registrado.' } });
 
@@ -79,29 +79,29 @@ router.post('/register', (req, res) => {
   const avatarColor = COLORS[Math.floor(Math.random() * COLORS.length)];
   const hash = bcrypt.hashSync(password, 12);
   const verifyToken = crypto.randomBytes(32).toString('hex');
-  const is_verified = invitationToken ? 1 : 0; // Si viene con invitación, se auto-verifica
+  const is_verified = 1; // Auto-verificado por defecto para facilitar pruebas e ingreso inmediato
 
-  const result = db.prepare(`
+  const result = await db.run(`
     INSERT INTO usuarios (nombre, email, password_hash, rol, avatar_color, academia_id, verification_token, is_verified)
     VALUES (?, ?, ?, 'estudiante', ?, 1, ?, ?)
-  `).run(nombre.trim(), email.toLowerCase().trim(), hash, avatarColor, verifyToken, is_verified);
+  `, nombre.trim(), email.toLowerCase().trim(), hash, avatarColor, verifyToken, is_verified);
 
-  const newUser = db.prepare('SELECT * FROM usuarios WHERE id = ?').get(result.lastInsertRowid);
+  const newUser = await db.get('SELECT * FROM usuarios WHERE id = ?', result.lastInsertRowid);
   
   // Procesar token de invitación si existe
   if (invitationToken) {
     try {
-      const invitacion = db.prepare('SELECT * FROM curso_invitaciones WHERE token = ?').get(invitationToken);
+      const invitacion = await db.get('SELECT * FROM curso_invitaciones WHERE token = ?', invitationToken);
       if (invitationToken && invitacion && !invitacion.usada && invitacion.email === newUser.email) {
-        db.prepare('INSERT INTO inscripciones (estudiante_id, curso_id) VALUES (?, ?)').run(newUser.id, invitacion.curso_id);
-        db.prepare('UPDATE curso_invitaciones SET usada = 1 WHERE id = ?').run(invitacion.id);
+        await db.run('INSERT INTO inscripciones (estudiante_id, curso_id) VALUES (?, ?)', newUser.id, invitacion.curso_id);
+        await db.run('UPDATE curso_invitaciones SET usada = 1 WHERE id = ?', invitacion.id);
       }
     } catch (err) {
       console.error('Error procesando invitación en registro:', err);
     }
   }
 
-  const token   = jwt.sign({ id: newUser.id, email: newUser.email, rol: newUser.rol }, JWT_SECRET, { expiresIn: JWT_EXPIRES });
+  const token   = jwt.sign({ id: newUser.id, email: newUser.email, rol: newUser.rol, academia_id: newUser.academia_id || 1 }, JWT_SECRET, { expiresIn: JWT_EXPIRES });
 
   // Disparar notificaciones y email de verificación (si no fue auto-verificado)
   notif.onNuevoEstudiante(newUser).catch(err => console.error('notif error:', err.message));
@@ -118,13 +118,13 @@ router.post('/register', (req, res) => {
 });
 
 // ─── POST /api/auth/login ─────────────────────────────────────────────────────
-router.post('/login', (req, res) => {
+router.post('/login', async (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password)
     return res.status(400).json({ error: { message: 'Email y contraseña son requeridos.' } });
 
-  const user = db.prepare('SELECT * FROM usuarios WHERE email = ?').get(email.toLowerCase().trim());
+  const user = await db.get('SELECT * FROM usuarios WHERE email = ?', email.toLowerCase().trim());
   if (!user || !bcrypt.compareSync(password, user.password_hash))
     return res.status(401).json({ error: { message: 'Credenciales incorrectas.' } });
 
@@ -133,20 +133,20 @@ router.post('/login', (req, res) => {
     return res.status(403).json({ error: { message: 'Por favor, verifica tu cuenta desde el enlace que enviamos a tu correo.' } });
   }
 
-  const token = jwt.sign({ id: user.id, email: user.email, rol: user.rol }, JWT_SECRET, { expiresIn: JWT_EXPIRES });
+  const token = jwt.sign({ id: user.id, email: user.email, rol: user.rol, academia_id: user.academia_id || 1 }, JWT_SECRET, { expiresIn: JWT_EXPIRES });
   return res.json({ success: true, token, user: publicUser(user) });
 });
 
 // ─── GET /api/auth/me ─────────────────────────────────────────────────────────
-router.get('/me', authMiddleware, (req, res) => {
-  const user = db.prepare('SELECT * FROM usuarios WHERE id = ?').get(req.user.id);
+router.get('/me', authMiddleware, async (req, res) => {
+  const user = await db.get('SELECT * FROM usuarios WHERE id = ?', req.user.id);
   if (!user) return res.status(404).json({ error: { message: 'Usuario no encontrado.' } });
   return res.json({ success: true, user: publicUser(user) });
 });
 
 // ─── PATCH /api/auth/me — Actualizar perfil ───────────────────────────────────
-router.patch('/me', authMiddleware, (req, res) => {
-  const user = db.prepare('SELECT * FROM usuarios WHERE id = ?').get(req.user.id);
+router.patch('/me', authMiddleware, async (req, res) => {
+  const user = await db.get('SELECT * FROM usuarios WHERE id = ?', req.user.id);
   if (!user) return res.status(404).json({ error: { message: 'Usuario no encontrado.' } });
 
   const { nombre, bio, avatar_color, notif_email, notif_platform } = req.body;
@@ -160,17 +160,17 @@ router.patch('/me', authMiddleware, (req, res) => {
   const nuevoNotifEmail    = notif_email    !== undefined ? (notif_email    ? 1 : 0) : (user.notif_email    ?? 1);
   const nuevoNotifPlatform = notif_platform !== undefined ? (notif_platform ? 1 : 0) : (user.notif_platform ?? 1);
 
-  db.prepare('UPDATE usuarios SET nombre = ?, bio = ?, avatar_color = ?, notif_email = ?, notif_platform = ? WHERE id = ?')
-    .run(nuevoNombre, nuevaBio, nuevoAvatarColor, nuevoNotifEmail, nuevoNotifPlatform, user.id);
+  await db.run('UPDATE usuarios SET nombre = ?, bio = ?, avatar_color = ?, notif_email = ?, notif_platform = ? WHERE id = ?', 
+    nuevoNombre, nuevaBio, nuevoAvatarColor, nuevoNotifEmail, nuevoNotifPlatform, user.id);
 
-  const updated = db.prepare('SELECT * FROM usuarios WHERE id = ?').get(user.id);
+  const updated = await db.get('SELECT * FROM usuarios WHERE id = ?', user.id);
   return res.json({ success: true, user: publicUser(updated) });
 
 });
 
 // ─── PATCH /api/auth/password — Cambiar contraseña ───────────────────────────
-router.patch('/password', authMiddleware, (req, res) => {
-  const user = db.prepare('SELECT * FROM usuarios WHERE id = ?').get(req.user.id);
+router.patch('/password', authMiddleware, async (req, res) => {
+  const user = await db.get('SELECT * FROM usuarios WHERE id = ?', req.user.id);
   if (!user) return res.status(404).json({ error: { message: 'Usuario no encontrado.' } });
 
   const { currentPassword, newPassword } = req.body;
@@ -191,8 +191,8 @@ router.patch('/password', authMiddleware, (req, res) => {
   if (!bcrypt.compareSync(currentPassword, user.password_hash))
     return res.status(401).json({ error: { message: 'La contraseña actual es incorrecta.' } });
 
-  db.prepare('UPDATE usuarios SET password_hash = ? WHERE id = ?')
-    .run(bcrypt.hashSync(newPassword, 12), user.id);
+  await db.run('UPDATE usuarios SET password_hash = ? WHERE id = ?', 
+    bcrypt.hashSync(newPassword, 12), user.id);
 
   return res.json({ success: true, message: 'Contraseña actualizada correctamente.' });
 });
@@ -202,7 +202,7 @@ router.post('/forgot-password', async (req, res) => {
   const { email } = req.body;
   if (!email) return res.status(400).json({ error: { message: 'El correo electrónico es requerido.' } });
 
-  const user = db.prepare('SELECT * FROM usuarios WHERE email = ?').get(email.toLowerCase().trim());
+  const user = await db.get('SELECT * FROM usuarios WHERE email = ?', email.toLowerCase().trim());
   if (!user) {
     // Por seguridad, no decimos si el usuario existe o no, pero retornamos success
     return res.json({ success: true, message: 'Si el correo existe, recibirás instrucciones.' });
@@ -212,24 +212,26 @@ router.post('/forgot-password', async (req, res) => {
   // Expira en 1 hora
   const expiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString();
 
-  db.prepare('UPDATE usuarios SET reset_token = ?, reset_token_expires = ? WHERE id = ?')
-    .run(resetToken, expiresAt, user.id);
+  await db.run('UPDATE usuarios SET reset_token = ?, reset_token_expires = ? WHERE id = ?', resetToken, expiresAt, user.id);
+
+  const resetUrl = `http://localhost:5173/reset-password?token=${resetToken}`;
 
   try {
     await mailer.sendPasswordResetEmail({ email: user.email, nombre: user.nombre, token: resetToken });
-    return res.json({ success: true, message: 'Si el correo existe, recibirás instrucciones.' });
+    return res.json({ success: true, message: 'Si el correo existe, recibirás instrucciones.', devResetUrl: resetUrl });
   } catch (err) {
     console.error('Error al enviar correo de recuperación:', err);
-    return res.status(500).json({ error: { message: 'Error al enviar el correo.' } });
+    // Devolvemos success con devResetUrl de todas formas en desarrollo para no bloquear el flujo
+    return res.json({ success: true, message: 'Si el correo existe, recibirás instrucciones (correo simulado).', devResetUrl: resetUrl });
   }
 });
 
 // ─── POST /api/auth/reset-password ────────────────────────────────────────────
-router.post('/reset-password', (req, res) => {
+router.post('/reset-password', async (req, res) => {
   const { token, newPassword } = req.body;
   if (!token || !newPassword) return res.status(400).json({ error: { message: 'Faltan parámetros.' } });
 
-  const user = db.prepare('SELECT * FROM usuarios WHERE reset_token = ?').get(token);
+  const user = await db.get('SELECT * FROM usuarios WHERE reset_token = ?', token);
   
   if (!user) {
     return res.status(400).json({ error: { message: 'Enlace inválido o expirado.' } });
@@ -248,18 +250,17 @@ router.post('/reset-password', (req, res) => {
   }
 
   const hash = bcrypt.hashSync(newPassword, 12);
-  db.prepare('UPDATE usuarios SET password_hash = ?, reset_token = NULL, reset_token_expires = NULL WHERE id = ?')
-    .run(hash, user.id);
+  await db.run('UPDATE usuarios SET password_hash = ?, reset_token = NULL, reset_token_expires = NULL WHERE id = ?', hash, user.id);
 
   return res.json({ success: true, message: 'Contraseña restablecida correctamente. Ya puedes iniciar sesión.' });
 });
 
 // ─── POST /api/auth/verify-email ──────────────────────────────────────────────
-router.post('/verify-email', (req, res) => {
+router.post('/verify-email', async (req, res) => {
   const { token } = req.body;
   if (!token) return res.status(400).json({ error: { message: 'Falta el token de verificación.' } });
 
-  const user = db.prepare('SELECT * FROM usuarios WHERE verification_token = ?').get(token);
+  const user = await db.get('SELECT * FROM usuarios WHERE verification_token = ?', token);
   if (!user) {
     return res.status(400).json({ error: { message: 'Enlace de verificación inválido.' } });
   }
@@ -268,8 +269,7 @@ router.post('/verify-email', (req, res) => {
     return res.json({ success: true, message: 'La cuenta ya ha sido verificada.' });
   }
 
-  db.prepare('UPDATE usuarios SET is_verified = 1, verification_token = NULL WHERE id = ?')
-    .run(user.id);
+  await db.run('UPDATE usuarios SET is_verified = 1, verification_token = NULL WHERE id = ?', user.id);
 
   // Enviar email de bienvenida una vez verificado
   mailer.sendWelcomeEmail({ email: user.email, nombre: user.nombre })

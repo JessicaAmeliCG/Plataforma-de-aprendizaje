@@ -1,5 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import CreatorLayout    from './layouts/CreatorLayout'
+import AdminLayout      from './layouts/AdminLayout'
+import ModeradorLayout  from './layouts/ModeradorLayout'
 import DashboardHome    from './pages/DashboardHome'
 import CursosPage       from './pages/CursosPage'
 import CursoDetalle     from './pages/CursoDetalle'
@@ -14,9 +16,17 @@ import RegisterPage     from './pages/RegisterPage'
 import ForgotPassword   from './pages/ForgotPassword'
 import ResetPassword    from './pages/ResetPassword'
 import VerifyEmail      from './pages/VerifyEmail'
+import VerifyPending    from './pages/VerifyPending'
 import StudentLayout    from './layouts/StudentLayout'
 import StudentDashboard from './pages/StudentDashboard'
 import StudentCursoViewer from './pages/StudentCursoViewer'
+import BuscarCursosPage from './pages/BuscarCursosPage'
+import AdminDashboard   from './pages/AdminDashboard'
+import ModeradorDashboard from './pages/ModeradorDashboard'
+import UsuariosPage     from './pages/UsuariosPage'
+import MaestrosPage     from './pages/MaestrosPage'
+import PerfilCreadorPage from './pages/PerfilCreadorPage'
+import GamificacionPage  from './pages/GamificacionPage'
 import useAuthStore     from './stores/authStore'
 import PageTransition   from './components/PageTransition'
 import LandingPage      from './pages/LandingPage'
@@ -40,6 +50,7 @@ function App() {
           <Route path="/forgot-password"  element={<ForgotPassword />} />
           <Route path="/reset-password"   element={<ResetPassword />} />
           <Route path="/verify-email"     element={<VerifyEmail />} />
+          <Route path="/verify-pending"   element={<VerifyPending />} />
           <Route path="/invitacion"       element={<InvitacionPage />} />
 
           {/* Panel del Creador — protegido */}
@@ -55,14 +66,48 @@ function App() {
             <Route path="ajustes"          element={<AjustesPage />} />
           </Route>
 
-          {/* Panel de Estudiante — protegido */}
-          <Route path="/student" element={<PrivateRoute><StudentLayout /></PrivateRoute>}>
-            <Route path="dashboard"        element={<StudentDashboard />} />
-            <Route path="cursos/:id/ver"   element={<StudentCursoViewer />} />
+          {/* Panel del SuperAdmin — protegido */}
+          <Route path="/admin" element={<PrivateRoute><AdminLayout /></PrivateRoute>}>
+            <Route index                   element={<Navigate to="dashboard" replace />} />
+            <Route path="dashboard"        element={<AdminDashboard />} />
+            <Route path="cursos"           element={<CursosPage />} />
+            <Route path="cursos/:id"       element={<CursoDetalle />} />
+            <Route path="cursos/:id/ver"   element={<CursoViewer />} />
+            <Route path="usuarios"         element={<UsuariosPage />} />
+            <Route path="moderadores"      element={<EstudiantesPage />} />
+            <Route path="comunidad"        element={<ComunidadPage />} />
+            <Route path="analiticas"       element={<AnaliticasPage />} />
+            <Route path="ajustes"          element={<AjustesPage />} />
+          </Route>
+
+          {/* Panel del Moderador — protegido */}
+          <Route path="/moderador" element={<PrivateRoute><ModeradorLayout /></PrivateRoute>}>
+            <Route index                   element={<Navigate to="cursos" replace />} />
+            <Route path="dashboard"        element={<ModeradorDashboard />} />
+            <Route path="cursos"           element={<CursosPage />} />
+            <Route path="cursos/:id"       element={<CursoDetalle />} />
+            <Route path="cursos/:id/ver"   element={<CursoViewer />} />
+            <Route path="maestros"         element={<MaestrosPage />} />
             <Route path="comunidad"        element={<ComunidadPage />} />
             <Route path="ajustes"          element={<AjustesPage />} />
           </Route>
 
+          {/* Panel de Estudiante — protegido */}
+          <Route path="/student" element={<PrivateRoute><StudentLayout /></PrivateRoute>}>
+            <Route index                   element={<Navigate to="cursos" replace />} />
+            <Route path="dashboard"        element={<StudentDashboard />} />
+            <Route path="cursos"           element={<StudentDashboard />} />
+            <Route path="buscar"           element={<BuscarCursosPage />} />
+            <Route path="cursos/:id/ver"   element={<StudentCursoViewer />} />
+            <Route path="comunidad"        element={<ComunidadPage />} />
+            <Route path="gamificacion"     element={<GamificacionPage />} />
+            <Route path="ajustes"          element={<AjustesPage />} />
+          </Route>
+
+          {/* Perfil público del creador — accesible desde cualquier panel */}
+          <Route path="/creator/:id/perfil" element={<PrivateRoute><PerfilCreadorPage /></PrivateRoute>} />
+
+          {/* Alias dentro del panel de estudiante para que tenga contexto del sidebar */}
           {/* 404 */}
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>

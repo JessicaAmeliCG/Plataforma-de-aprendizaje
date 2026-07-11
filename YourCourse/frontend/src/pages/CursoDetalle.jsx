@@ -72,8 +72,8 @@ function LeccionRow({ leccion, index, total, onMoveUp, onMoveDown, onDelete, onR
     setGuardando(false); setEditando(false);
   };
 
-  const hasVideo = !!leccion.video_url;
-  const isActive = previewUrl === leccion.video_url && hasVideo;
+  const hasVideo = !!leccion.video_url || !!leccion.iframe_url;
+  const isActive = previewUrl === leccion.video_url && leccion.video_url;
 
   return (
     <div className={`group flex items-start gap-3 p-4 rounded-2xl border transition-all duration-200 ${
@@ -87,11 +87,11 @@ function LeccionRow({ leccion, index, total, onMoveUp, onMoveDown, onDelete, onR
         <button onClick={onMoveDown} disabled={index === total - 1} className="w-6 h-6 rounded-lg flex items-center justify-center text-gray-400 hover:text-primary-600 hover:bg-primary-100 dark:hover:bg-primary-900/20 disabled:opacity-20 disabled:cursor-not-allowed transition-all"><ChevronDown size={14} /></button>
       </div>
 
-      <button onClick={() => hasVideo && onPreview(leccion.video_url)} disabled={!hasVideo}
+      <button onClick={() => leccion.video_url && onPreview(leccion.video_url)} disabled={!leccion.video_url}
         className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 transition-all ${
-          hasVideo ? 'bg-gradient-to-br from-primary-500 to-primary-700 text-white shadow-sm hover:shadow-primary-500/30 hover:scale-105 cursor-pointer' : 'bg-gray-100 dark:bg-gray-800 text-gray-300 dark:text-gray-600 cursor-default'
+          leccion.video_url ? 'bg-gradient-to-br from-primary-500 to-primary-700 text-white shadow-sm hover:shadow-primary-500/30 hover:scale-105 cursor-pointer' : 'bg-gray-100 dark:bg-gray-800 text-gray-300 dark:text-gray-600 cursor-default'
         }`}>
-        {hasVideo ? <Play size={18} fill="white" /> : <Film size={18} />}
+        {leccion.video_url ? <Play size={18} fill="white" /> : <Film size={18} />}
       </button>
 
       <div className="flex-1 min-w-0">
@@ -109,9 +109,13 @@ function LeccionRow({ leccion, index, total, onMoveUp, onMoveDown, onDelete, onR
           </div>
         )}
         <div className="flex items-center gap-2 mt-1">
-          {hasVideo
-            ? <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1"><Video size={10} /> {t('creator.videoUploaded')}</span>
-            : <span className="text-[11px] text-gray-400 flex items-center gap-1"><Video size={10} /> {t('creator.noVideo')}</span>}
+          {leccion.video_url ? (
+            <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1"><Video size={10} /> Video local subido</span>
+          ) : leccion.iframe_url ? (
+            <span className="text-[11px] text-blue-600 dark:text-blue-400 font-medium flex items-center gap-1"><Video size={10} /> Enlace externo / iFrame</span>
+          ) : (
+            <span className="text-[11px] text-gray-400 flex items-center gap-1"><Video size={10} /> {t('creator.noVideo')}</span>
+          )}
           {leccion.duracion && <span className="text-[11px] text-gray-400">· <Clock size={10} className="inline" /> {leccion.duracion}</span>}
         </div>
       </div>
@@ -123,7 +127,9 @@ function LeccionRow({ leccion, index, total, onMoveUp, onMoveDown, onDelete, onR
 function VideoUploadZone({ cursoId, onSuccess }) {
   const t = useT();
   const [titulo, setTitulo]       = useState('');
+  const [sourceType, setSourceType] = useState('file'); // 'file' o 'iframe'
   const [archivo, setArchivo]     = useState(null);
+  const [iframeUrl, setIframeUrl] = useState('');
   const [progress, setProgress]   = useState(0);
   const [uploading, setUploading] = useState(false);
   const [error, setError]         = useState('');
@@ -134,14 +140,21 @@ function VideoUploadZone({ cursoId, onSuccess }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!titulo.trim()) { setError(t('creator.titleRequired')); return; }
+    if (sourceType === 'iframe' && !iframeUrl.trim()) { setError('La URL o código iFrame es requerido.'); return; }
+    
     setUploading(true); setProgress(0); setError('');
     try {
       const fd = new FormData();
       fd.append('titulo', titulo.trim());
-      if (archivo) fd.append('video', archivo);
+      if (sourceType === 'file' && archivo) {
+        fd.append('video', archivo);
+      } else if (sourceType === 'iframe') {
+        fd.append('iframe_url', iframeUrl.trim());
+      }
+      
       const res = await api.upload(`/cursos/${cursoId}/lecciones`, fd, pct => setProgress(pct));
       onSuccess(res.data);
-      setTitulo(''); setArchivo(null); setProgress(0);
+      setTitulo(''); setArchivo(null); setIframeUrl(''); setProgress(0);
       if (fileRef.current) fileRef.current.value = '';
     } catch (err) { setError(err.message); }
     finally { setUploading(false); }
@@ -154,25 +167,58 @@ function VideoUploadZone({ cursoId, onSuccess }) {
         <input type="text" value={titulo} onChange={e => setTitulo(e.target.value)} placeholder={t('creator.lessonTitleEx')} maxLength={120}
           className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 transition" />
       </div>
-      <div onDrop={e => { e.preventDefault(); handleFile(e.dataTransfer.files[0]); }} onDragOver={e => e.preventDefault()}
-        onClick={() => fileRef.current?.click()}
-        className={`border-2 border-dashed rounded-2xl p-6 text-center cursor-pointer transition-all ${archivo ? 'border-primary-400 bg-primary-50 dark:bg-primary-900/10' : 'border-gray-200 dark:border-gray-700 hover:border-primary-400 hover:bg-primary-50/50 dark:hover:bg-primary-900/10'}`}>
-        <input ref={fileRef} type="file" accept="video/*" className="hidden" onChange={e => e.target.files[0] && handleFile(e.target.files[0])} />
-        {archivo ? (
-          <div className="flex flex-col items-center gap-2">
-            <Film size={24} className="text-primary-500" />
-            <p className="text-sm font-semibold text-gray-900 dark:text-white truncate max-w-xs">{archivo.name}</p>
-            <p className="text-xs text-gray-400">{(archivo.size / (1024 * 1024)).toFixed(1)} MB · clic para cambiar</p>
-          </div>
-        ) : (
-          <div className="flex flex-col items-center gap-2">
-            <Upload size={22} className="text-gray-400" />
-            <p className="text-sm text-gray-600 dark:text-gray-400">{t('creator.dragOrSelectVideo')}</p>
-            <p className="text-xs text-gray-400">{t('creator.videoFormatsMax')}</p>
-          </div>
-        )}
+
+      {/* Selectores de tipo de fuente */}
+      <div className="flex bg-gray-100 dark:bg-gray-800 p-1 rounded-xl">
+        <button
+          type="button"
+          onClick={() => { setSourceType('file'); setError(''); }}
+          className={`flex-1 py-1.5 rounded-lg text-xs font-semibold transition ${sourceType === 'file' ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400'}`}
+        >
+          Subir archivo (.mp4)
+        </button>
+        <button
+          type="button"
+          onClick={() => { setSourceType('iframe'); setError(''); }}
+          className={`flex-1 py-1.5 rounded-lg text-xs font-semibold transition ${sourceType === 'iframe' ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400'}`}
+        >
+          Reproductor externo (iFrame / URL)
+        </button>
       </div>
-      {uploading && (
+
+      {sourceType === 'file' ? (
+        <div onDrop={e => { e.preventDefault(); handleFile(e.dataTransfer.files[0]); }} onDragOver={e => e.preventDefault()}
+          onClick={() => fileRef.current?.click()}
+          className={`border-2 border-dashed rounded-2xl p-6 text-center cursor-pointer transition-all ${archivo ? 'border-primary-400 bg-primary-50 dark:bg-primary-900/10' : 'border-gray-200 dark:border-gray-700 hover:border-primary-400 hover:bg-primary-50/50 dark:hover:bg-primary-900/10'}`}>
+          <input ref={fileRef} type="file" accept="video/*" className="hidden" onChange={e => e.target.files[0] && handleFile(e.target.files[0])} />
+          {archivo ? (
+            <div className="flex flex-col items-center gap-2">
+              <Film size={24} className="text-primary-500" />
+              <p className="text-sm font-semibold text-gray-900 dark:text-white truncate max-w-xs">{archivo.name}</p>
+              <p className="text-xs text-gray-400">{(archivo.size / (1024 * 1024)).toFixed(1)} MB · clic para cambiar</p>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center gap-2">
+              <Upload size={22} className="text-gray-400" />
+              <p className="text-sm text-gray-600 dark:text-gray-400">{t('creator.dragOrSelectVideo')}</p>
+              <p className="text-xs text-gray-400">{t('creator.videoFormatsMax')}</p>
+            </div>
+          )}
+        </div>
+      ) : (
+        <div>
+          <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1.5">Código iframe o URL directa (YouTube, Vimeo, etc.)</label>
+          <textarea
+            value={iframeUrl}
+            onChange={e => setIframeUrl(e.target.value)}
+            placeholder="Pegar enlace de YouTube/Vimeo o código <iframe ...></iframe>"
+            rows={3}
+            className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 transition resize-none"
+          />
+        </div>
+      )}
+
+      {uploading && progress > 0 && (
         <div className="space-y-1.5">
           <div className="flex justify-between text-xs text-gray-500"><span className="flex items-center gap-1.5"><Loader2 size={12} className="animate-spin" /> {t('creator.uploading')}</span><span className="font-semibold">{progress}%</span></div>
           <ProgressBar progress={progress} />
@@ -180,7 +226,7 @@ function VideoUploadZone({ cursoId, onSuccess }) {
       )}
       {error && <p className="text-sm text-red-500 flex items-center gap-1.5"><AlertCircle size={14} />{error}</p>}
       <button type="submit" disabled={uploading} className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-gradient-to-r from-primary-600 to-primary-600 hover:from-primary-500 hover:to-primary-500 disabled:opacity-60 text-white font-semibold text-sm shadow-lg shadow-primary-500/25 transition-all active:scale-95">
-        {uploading ? <><Loader2 size={16} className="animate-spin" /> {t('creator.uploading')} {progress}%</> : <><Plus size={16} /> {t('creator.addLesson')}</>}
+        {uploading ? <><Loader2 size={16} className="animate-spin" /> Procesando lección...</> : <><Plus size={16} /> {t('creator.addLesson')}</>}
       </button>
     </form>
   );

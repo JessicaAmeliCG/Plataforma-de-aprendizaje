@@ -48,7 +48,7 @@ const upload = multer({
 });
 
 // ─── Middlewares de auth ──────────────────────────────────────────────────────
-function auth(req, res, next) {
+async function auth(req, res, next) {
   const header = req.headers['authorization'];
   if (!header || !header.startsWith('Bearer ')) {
     return res.status(401).json({ error: { message: 'No autenticado.' } });
@@ -61,16 +61,18 @@ function auth(req, res, next) {
   }
 }
 
+const ROLES_CREADOR = ['creador', 'superadmin'];
+
 function soloCreador(req, res, next) {
-  if (req.user.rol !== 'creador') {
-    return res.status(403).json({ error: { message: 'Solo los creadores pueden realizar esta acción.' } });
+  if (!ROLES_CREADOR.includes(req.user.rol)) {
+    return res.status(403).json({ error: { message: 'Solo los creadores o administradores pueden realizar esta acción.' } });
   }
   next();
 }
 
 // Helper: verificar que el curso pertenece al creador
-function getCursoPropio(cursoId, creatorId) {
-  return db.prepare('SELECT * FROM cursos WHERE id = ? AND creator_id = ?').get(cursoId, creatorId);
+async function getCursoPropio(cursoId, creatorId) {
+  return await db.get('SELECT * FROM cursos WHERE id = ? AND creator_id = ?', cursoId, creatorId);
 }
 
 // Helper: eliminar archivo de disco si existe
@@ -79,57 +81,81 @@ function deleteFile(filePath) {
 }
 
 // ─── GET /api/cursos ──────────────────────────────────────────────────────────
-router.get('/', auth, (req, res) => {
-  const cursos = db.prepare(`
-    SELECT
-      c.*,
-      COUNT(i.id) AS estudiantes
-    FROM cursos c
-    LEFT JOIN inscripciones i ON i.curso_id = c.id
-    WHERE c.creator_id = ?
-    GROUP BY c.id
-    ORDER BY c.created_at DESC
-  `).all(req.user.id);
+router.get('/', auth, async (req, res) => {
+  // superadmin y moderador ven TODOS los cursos de su academia; creador solo los suyos de su academia
+  const esSuperAdmin = ['superadmin', 'moderador'].includes(req.user.rol);
+  const academiaId = req.user.academia_id || 1;
+  const cursos = esSuperAdmin
+    ? await db.query(`
+        SELECT c.*, COUNT(i.id) AS estudiantes, u.nombre AS creador_nombre
+        FROM cursos c
+        LEFT JOIN inscripciones i ON i.curso_id = c.id
+        LEFT JOIN usuarios u ON u.id = c.creator_id
+        WHERE c.academia_id = ?
+        GROUP BY c.id, u.nombre
+        ORDER BY c.created_at DESC
+      `, [academiaId])
+    : await db.query(`
+        SELECT c.*, COUNT(i.id) AS estudiantes
+        FROM cursos c
+        LEFT JOIN inscripciones i ON i.curso_id = c.id
+        WHERE c.creator_id = ? AND c.academia_id = ?
+        GROUP BY c.id
+        ORDER BY c.created_at DESC
+      `, [req.user.id, academiaId]);
   return res.json({ success: true, data: cursos });
 });
 
 // ─── GET /api/cursos/publicos ─────────────────────────────────────────────────
-router.get('/publicos', (req, res) => {
-  const cursos = db.prepare(`
+router.get('/publicos', async (req, res) => {
+  const academiaId = req.headers['x-academia-id'] || req.query.academia_id || 1;
+  const cursos = await db.query(`
     SELECT c.*, COUNT(i.id) AS estudiantes, u.nombre AS creador_nombre
     FROM cursos c
     LEFT JOIN inscripciones i ON i.curso_id = c.id
     LEFT JOIN usuarios u ON u.id = c.creator_id
-    WHERE c.estado = 'publicado' AND c.visibilidad = 'publico'
-    GROUP BY c.id
+    WHERE c.estado = 'publicado' AND c.visibilidad = 'publico' AND c.academia_id = ?
+    GROUP BY c.id, u.nombre
     ORDER BY c.created_at DESC
-  `).all();
+  `, [academiaId]);
   return res.json({ success: true, data: cursos });
 });
 
 // ─── GET /api/cursos/:id ──────────────────────────────────────────────────────
-router.get('/:id', auth, (req, res) => {
-  const curso = db.prepare(`
-    SELECT c.*, COUNT(i.id) AS estudiantes
-    FROM cursos c
-    LEFT JOIN inscripciones i ON i.curso_id = c.id
-    WHERE c.id = ? AND (c.creator_id = ? OR EXISTS (
-      SELECT 1 FROM inscripciones WHERE estudiante_id = ? AND curso_id = c.id
-    ))
-    GROUP BY c.id
-  `).get(req.params.id, req.user.id, req.user.id);
+router.get('/:id', auth, async (req, res) => {
+  const esAdmin = ['superadmin', 'moderador'].includes(req.user.rol);
+
+  // superadmin y moderador acceden a cualquier curso
+  const curso = esAdmin
+    ? await db.get(`
+        SELECT c.*, COUNT(i.id) AS estudiantes, u.nombre AS creador_nombre
+        FROM cursos c
+        LEFT JOIN inscripciones i ON i.curso_id = c.id
+        LEFT JOIN usuarios u ON u.id = c.creator_id
+        WHERE c.id = ?
+        GROUP BY c.id, u.nombre
+      `, req.params.id)
+    : await db.get(`
+        SELECT c.*, COUNT(i.id) AS estudiantes
+        FROM cursos c
+        LEFT JOIN inscripciones i ON i.curso_id = c.id
+        WHERE c.id = ? AND (c.creator_id = ? OR EXISTS (
+          SELECT 1 FROM inscripciones WHERE estudiante_id = ? AND curso_id = c.id
+        ))
+        GROUP BY c.id
+      `, req.params.id, req.user.id, req.user.id);
 
   if (!curso) return res.status(404).json({ error: { message: 'Curso no encontrado o sin acceso.' } });
 
-  const lecciones = db.prepare(`
+  const lecciones = await db.query(`
     SELECT * FROM lecciones WHERE curso_id = ? ORDER BY orden ASC, id ASC
-  `).all(req.params.id);
+  `, req.params.id);
 
   return res.json({ success: true, data: { ...curso, lecciones } });
 });
 
 // ─── POST /api/cursos ─────────────────────────────────────────────────────────
-router.post('/', auth, soloCreador, (req, res) => {
+router.post('/', auth, soloCreador, async (req, res) => {
   const {
     titulo,
     descripcion    = '',
@@ -151,11 +177,10 @@ router.post('/', auth, soloCreador, (req, res) => {
     return res.status(400).json({ error: { message: 'Modelo de negocio inválido.' } });
   }
 
-  const result = db.prepare(`
-    INSERT INTO cursos (titulo, descripcion, precio, modelo_negocio, estado, visibilidad, creator_id, modulos_count, duracion, gradient_class)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `).run(
-    titulo.trim(),
+  const result = await db.run(`
+    INSERT INTO cursos (titulo, descripcion, precio, modelo_negocio, estado, visibilidad, creator_id, modulos_count, duracion, gradient_class, academia_id)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `, titulo.trim(),
     descripcion.trim(),
     modelo_negocio === 'gratis' ? 0 : Number(precio),
     modelo_negocio,
@@ -165,20 +190,24 @@ router.post('/', auth, soloCreador, (req, res) => {
     Number(modulos_count),
     duracion.trim(),
     gradient_class,
-  );
+    req.user.academia_id || 1);
 
-  const newCurso = db.prepare('SELECT *, 0 as estudiantes FROM cursos WHERE id = ?').get(result.lastInsertRowid);
+  const newCurso = await db.get('SELECT *, 0 as estudiantes FROM cursos WHERE id = ?', result.lastInsertRowid);
   return res.status(201).json({ success: true, data: newCurso });
 });
 
 // ─── PATCH /api/cursos/:id ────────────────────────────────────────────────────
-router.patch('/:id', auth, soloCreador, (req, res) => {
-  const curso = getCursoPropio(req.params.id, req.user.id);
+router.patch('/:id', auth, soloCreador, async (req, res) => {
+  // superadmin puede editar cualquier curso; creador solo los suyos
+  const esAdmin = ['superadmin'].includes(req.user.rol);
+  const curso = esAdmin
+    ? await db.get('SELECT * FROM cursos WHERE id = ?', req.params.id)
+    : getCursoPropio(req.params.id, req.user.id);
   if (!curso) return res.status(404).json({ error: { message: 'Curso no encontrado.' } });
 
   const { titulo, descripcion, precio, modelo_negocio, estado, visibilidad, modulos_count, duracion, gradient_class } = req.body;
 
-  db.prepare(`
+  await db.run(`
     UPDATE cursos SET
       titulo         = COALESCE(?, titulo),
       descripcion    = COALESCE(?, descripcion),
@@ -190,28 +219,28 @@ router.patch('/:id', auth, soloCreador, (req, res) => {
       duracion       = COALESCE(?, duracion),
       gradient_class = COALESCE(?, gradient_class)
     WHERE id = ?
-  `).run(titulo, descripcion, precio, modelo_negocio, estado, visibilidad, modulos_count, duracion, gradient_class, req.params.id);
+  `, titulo, descripcion, precio, modelo_negocio, estado, visibilidad, modulos_count, duracion, gradient_class, req.params.id);
 
-  const updated = db.prepare(`
+  const updated = await db.get(`
     SELECT *, (SELECT COUNT(*) FROM inscripciones WHERE curso_id = ?) as estudiantes
     FROM cursos WHERE id = ?
-  `).get(req.params.id, req.params.id);
+  `, req.params.id, req.params.id);
 
   return res.json({ success: true, data: updated });
 });
 
 // ─── DELETE /api/cursos/:id ───────────────────────────────────────────────────
-router.delete('/:id', auth, soloCreador, (req, res) => {
-  const curso = getCursoPropio(req.params.id, req.user.id);
+router.delete('/:id', auth, soloCreador, async (req, res) => {
+  const curso = await getCursoPropio(req.params.id, req.user.id);
   if (!curso) return res.status(404).json({ error: { message: 'Curso no encontrado.' } });
 
   // Borrar archivos de video de las lecciones del curso
-  const lecciones = db.prepare('SELECT video_url FROM lecciones WHERE curso_id = ?').all(req.params.id);
+  const lecciones = await db.query('SELECT video_url FROM lecciones WHERE curso_id = ?', req.params.id);
   for (const l of lecciones) {
     if (l.video_url) deleteFile(path.join(UPLOADS_DIR, path.basename(l.video_url)));
   }
 
-  db.prepare('DELETE FROM cursos WHERE id = ?').run(req.params.id);
+  await db.run('DELETE FROM cursos WHERE id = ?', req.params.id);
   return res.json({ success: true, message: 'Curso eliminado.' });
 });
 
@@ -220,35 +249,36 @@ router.delete('/:id', auth, soloCreador, (req, res) => {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 // ─── POST /api/cursos/:id/lecciones ──────────────────────────────────────────
-// Subir video + crear lección
-router.post('/:id/lecciones', auth, soloCreador, upload.single('video'), (req, res) => {
-  const curso = getCursoPropio(req.params.id, req.user.id);
+// Subir video o ingresar iFrame + crear lección
+router.post('/:id/lecciones', auth, soloCreador, upload.single('video'), async (req, res) => {
+  const curso = await getCursoPropio(req.params.id, req.user.id);
   if (!curso) {
     if (req.file) deleteFile(req.file.path);
     return res.status(404).json({ error: { message: 'Curso no encontrado.' } });
   }
 
   const titulo = (req.body.titulo || 'Lección sin título').trim();
+  const iframeUrl = (req.body.iframe_url || '').trim();
 
   // Calcular el siguiente orden (máximo actual + 1)
-  const maxOrden = db.prepare('SELECT MAX(orden) as m FROM lecciones WHERE curso_id = ?').get(req.params.id);
+  const maxOrden = await db.get('SELECT MAX(orden) as m FROM lecciones WHERE curso_id = ?', req.params.id);
   const orden    = (maxOrden.m ?? -1) + 1;
 
   const videoUrl = req.file ? `/uploads/${req.file.filename}` : '';
 
-  const result = db.prepare(`
-    INSERT INTO lecciones (titulo, video_url, orden, curso_id)
-    VALUES (?, ?, ?, ?)
-  `).run(titulo, videoUrl, orden, req.params.id);
+  const result = await db.run(`
+    INSERT INTO lecciones (titulo, video_url, iframe_url, orden, curso_id)
+    VALUES (?, ?, ?, ?, ?)
+  `, titulo, videoUrl, iframeUrl, orden, req.params.id);
 
-  const leccion = db.prepare('SELECT * FROM lecciones WHERE id = ?').get(result.lastInsertRowid);
+  const leccion = await db.get('SELECT * FROM lecciones WHERE id = ?', result.lastInsertRowid);
   return res.status(201).json({ success: true, data: leccion });
 });
 
 // ─── PATCH /api/cursos/:id/lecciones/reorder ─────────────────────────────────
 // Debe ir ANTES de /:lid para evitar conflicto de rutas
-router.put('/:id/lecciones/reorder', auth, soloCreador, (req, res) => {
-  const curso = getCursoPropio(req.params.id, req.user.id);
+router.put('/:id/lecciones/reorder', auth, soloCreador, async (req, res) => {
+  const curso = await getCursoPropio(req.params.id, req.user.id);
   if (!curso) return res.status(404).json({ error: { message: 'Curso no encontrado.' } });
 
   const { ids } = req.body; // Array de IDs en el nuevo orden
@@ -256,59 +286,62 @@ router.put('/:id/lecciones/reorder', auth, soloCreador, (req, res) => {
     return res.status(400).json({ error: { message: '`ids` debe ser un array.' } });
   }
 
-  const update = db.prepare('UPDATE lecciones SET orden = ? WHERE id = ? AND curso_id = ?');
-  ids.forEach((id, index) => update.run(index, id, req.params.id));
+  for (let i = 0; i < ids.length; i++) {
+    await db.run('UPDATE lecciones SET orden = ? WHERE id = ? AND curso_id = ?', i, ids[i], req.params.id);
+  }
 
-  const lecciones = db.prepare('SELECT * FROM lecciones WHERE curso_id = ? ORDER BY orden ASC').all(req.params.id);
+  const lecciones = await db.query('SELECT * FROM lecciones WHERE curso_id = ? ORDER BY orden ASC', req.params.id);
   return res.json({ success: true, data: lecciones });
 });
 
 // ─── PATCH /api/cursos/:id/lecciones/:lid ────────────────────────────────────
-// Editar título y/o reemplazar video
-router.patch('/:id/lecciones/:lid', auth, soloCreador, upload.single('video'), (req, res) => {
-  const curso = getCursoPropio(req.params.id, req.user.id);
+// Editar título, reemplazar video o actualizar iFrame URL
+router.patch('/:id/lecciones/:lid', auth, soloCreador, upload.single('video'), async (req, res) => {
+  const curso = await getCursoPropio(req.params.id, req.user.id);
   if (!curso) {
     if (req.file) deleteFile(req.file.path);
     return res.status(404).json({ error: { message: 'Curso no encontrado.' } });
   }
 
-  const leccion = db.prepare('SELECT * FROM lecciones WHERE id = ? AND curso_id = ?').get(req.params.lid, req.params.id);
+  const leccion = await db.get('SELECT * FROM lecciones WHERE id = ? AND curso_id = ?', req.params.lid, req.params.id);
   if (!leccion) {
     if (req.file) deleteFile(req.file.path);
     return res.status(404).json({ error: { message: 'Lección no encontrada.' } });
   }
 
   const titulo = req.body.titulo !== undefined ? req.body.titulo.trim() : leccion.titulo;
+  const iframeUrl = req.body.iframe_url !== undefined ? req.body.iframe_url.trim() : leccion.iframe_url;
   let videoUrl  = leccion.video_url;
 
   if (req.file) {
-    // Borrar video anterior si había uno
+    // Borrar video anterior si había uno y se sube uno nuevo
     if (leccion.video_url) deleteFile(path.join(UPLOADS_DIR, path.basename(leccion.video_url)));
     videoUrl = `/uploads/${req.file.filename}`;
   }
 
-  db.prepare('UPDATE lecciones SET titulo = ?, video_url = ? WHERE id = ?').run(titulo, videoUrl, leccion.id);
-  const updated = db.prepare('SELECT * FROM lecciones WHERE id = ?').get(leccion.id);
+  await db.run('UPDATE lecciones SET titulo = ?, video_url = ?, iframe_url = ? WHERE id = ?', titulo, videoUrl, iframeUrl, leccion.id);
+  const updated = await db.get('SELECT * FROM lecciones WHERE id = ?', leccion.id);
   return res.json({ success: true, data: updated });
 });
 
 // ─── DELETE /api/cursos/:id/lecciones/:lid ────────────────────────────────────
-router.delete('/:id/lecciones/:lid', auth, soloCreador, (req, res) => {
-  const curso = getCursoPropio(req.params.id, req.user.id);
+router.delete('/:id/lecciones/:lid', auth, soloCreador, async (req, res) => {
+  const curso = await getCursoPropio(req.params.id, req.user.id);
   if (!curso) return res.status(404).json({ error: { message: 'Curso no encontrado.' } });
 
-  const leccion = db.prepare('SELECT * FROM lecciones WHERE id = ? AND curso_id = ?').get(req.params.lid, req.params.id);
+  const leccion = await db.get('SELECT * FROM lecciones WHERE id = ? AND curso_id = ?', req.params.lid, req.params.id);
   if (!leccion) return res.status(404).json({ error: { message: 'Lección no encontrada.' } });
 
   // Borrar archivo físico
   if (leccion.video_url) deleteFile(path.join(UPLOADS_DIR, path.basename(leccion.video_url)));
 
-  db.prepare('DELETE FROM lecciones WHERE id = ?').run(leccion.id);
+  await db.run('DELETE FROM lecciones WHERE id = ?', leccion.id);
 
   // Re-normalizar los órdenes restantes
-  const restantes = db.prepare('SELECT id FROM lecciones WHERE curso_id = ? ORDER BY orden ASC, id ASC').all(req.params.id);
-  const reorder   = db.prepare('UPDATE lecciones SET orden = ? WHERE id = ?');
-  restantes.forEach((l, i) => reorder.run(i, l.id));
+  const restantes = await db.query('SELECT id FROM lecciones WHERE curso_id = ? ORDER BY orden ASC, id ASC', req.params.id);
+  for (let i = 0; i < restantes.length; i++) {
+    await db.run('UPDATE lecciones SET orden = ? WHERE id = ?', i, restantes[i].id);
+  }
 
   return res.json({ success: true, message: 'Lección eliminada.' });
 });

@@ -66,6 +66,11 @@ app.use('/api/analiticas',         require('./routes/analiticas'));
 app.use('/api/notificaciones',     require('./routes/notificaciones'));
 app.use('/api/pagos',              require('./routes/pagos'));
 app.use('/api/invitaciones',       require('./routes/invitaciones'));
+app.use('/api/admin',              require('./routes/admin'));
+app.use('/api/maestros',           require('./routes/maestros'));
+app.use('/api/dudas',              require('./routes/dudas'));
+app.use('/api/gamificacion',       require('./routes/gamificacion'));
+
 
 
 

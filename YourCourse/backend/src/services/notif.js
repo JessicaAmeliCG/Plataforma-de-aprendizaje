@@ -1,44 +1,39 @@
 /**
  * notif.js — Helper para crear notificaciones en BD + disparar emails
+ * Compatible con base de datos dual asíncrona
  */
 const db     = require('../config/db');
 const mailer = require('./mailer');
 
 /**
  * Crea una notificación en la BD para un usuario
- * @param {object} opts
- * @param {number} opts.usuarioId — destinatario
- * @param {string} opts.tipo      — 'nuevo_estudiante' | 'nueva_resena' | 'nuevo_post' | 'nueva_respuesta'
- * @param {string} opts.titulo
- * @param {string} [opts.mensaje]
- * @param {string} [opts.enlace]
  */
-function crearNotificacion({ usuarioId, tipo, titulo, mensaje = '', enlace = '' }) {
+async function crearNotificacion({ usuarioId, tipo, titulo, mensaje = '', enlace = '' }) {
   try {
-    db.prepare(`
+    await db.run(`
       INSERT INTO notificaciones (usuario_id, tipo, titulo, mensaje, enlace)
       VALUES (?, ?, ?, ?, ?)
-    `).run(usuarioId, tipo, titulo, mensaje, enlace);
+    `, usuarioId, tipo, titulo, mensaje, enlace);
   } catch (err) {
     console.error('Error creando notificación:', err.message);
   }
 }
 
 /** Obtiene el primer creador registrado */
-function getCreador() {
-  return db.prepare("SELECT * FROM usuarios WHERE rol = 'creador' LIMIT 1").get();
+async function getCreador() {
+  return await db.get("SELECT * FROM usuarios WHERE rol = 'creador' LIMIT 1");
 }
 
 // ─── Disparadores de alto nivel ───────────────────────────────────────────────
 
 /** Nuevo estudiante se registró */
 async function onNuevoEstudiante(estudiante) {
-  const creador = getCreador();
+  const creador = await getCreador();
   if (!creador) return;
 
   // Notificación en plataforma (para el creador si tiene notif_platform ON)
   if (creador.notif_platform !== 0) {
-    crearNotificacion({
+    await crearNotificacion({
       usuarioId: creador.id,
       tipo:    'nuevo_estudiante',
       titulo:  `Nuevo estudiante: ${estudiante.nombre}`,
@@ -62,13 +57,13 @@ async function onNuevoEstudiante(estudiante) {
 
 /** Nuevo post en comunidad */
 async function onNuevoPost(post, autor) {
-  const creador = getCreador();
+  const creador = await getCreador();
   if (!creador || creador.id === autor.id) return; // No notificar si el creador es el autor
 
   const tipoLabel = post.tipo === 'resena' ? 'Nueva reseña' : 'Nueva discusión';
 
   if (creador.notif_platform !== 0) {
-    crearNotificacion({
+    await crearNotificacion({
       usuarioId: creador.id,
       tipo:    post.tipo === 'resena' ? 'nueva_resena' : 'nuevo_post',
       titulo:  `${tipoLabel}: ${post.titulo}`,
@@ -92,7 +87,7 @@ async function onNuevaRespuesta(post, autor, postAutor) {
   if (!postAutor || postAutor.id === autor.id) return; // No auto-notificar
 
   if (postAutor.notif_platform !== 0) {
-    crearNotificacion({
+    await crearNotificacion({
       usuarioId: postAutor.id,
       tipo:    'nueva_respuesta',
       titulo:  `${autor.nombre} respondió en tu post`,
@@ -111,10 +106,10 @@ async function onNuevaRespuesta(post, autor, postAutor) {
   }
 
   // Si el post no es del creador, también notificar al creador
-  const creador = getCreador();
+  const creador = await getCreador();
   if (creador && creador.id !== autor.id && creador.id !== postAutor.id) {
     if (creador.notif_platform !== 0) {
-      crearNotificacion({
+      await crearNotificacion({
         usuarioId: creador.id,
         tipo:    'nueva_respuesta',
         titulo:  `${autor.nombre} respondió en la comunidad`,

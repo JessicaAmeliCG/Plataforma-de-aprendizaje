@@ -7,7 +7,7 @@ const mailer = require('../services/mailer');
 const JWT_SECRET = process.env.JWT_SECRET || 'yourcourse_fallback_secret';
 
 // Middleware para autenticación
-function authMiddleware(req, res, next) {
+async function authMiddleware(req, res, next) {
   const h = req.headers['authorization'];
   if (!h || !h.startsWith('Bearer '))
     return res.status(401).json({ error: { message: 'No autenticado.' } });
@@ -31,15 +31,15 @@ router.post('/enviar', authMiddleware, async (req, res) => {
     return res.status(400).json({ error: { message: 'Falta curso_id o email.' } });
   }
 
-  const curso = db.prepare('SELECT id, titulo, creator_id FROM cursos WHERE id = ?').get(curso_id);
+  const curso = await db.get('SELECT id, titulo, creator_id FROM cursos WHERE id = ?', curso_id);
   if (!curso || curso.creator_id !== req.user.id) {
     return res.status(403).json({ error: { message: 'No tienes permiso sobre este curso.' } });
   }
 
   // Verificar si ya está inscrito
-  const userExists = db.prepare('SELECT id FROM usuarios WHERE email = ?').get(email.toLowerCase().trim());
+  const userExists = await db.get('SELECT id FROM usuarios WHERE email = ?', email.toLowerCase().trim());
   if (userExists) {
-    const isEnrolled = db.prepare('SELECT id FROM inscripciones WHERE estudiante_id = ? AND curso_id = ?').get(userExists.id, curso.id);
+    const isEnrolled = await db.get('SELECT id FROM inscripciones WHERE estudiante_id = ? AND curso_id = ?', userExists.id, curso.id);
     if (isEnrolled) {
       return res.status(400).json({ error: { message: 'El estudiante ya está inscrito en este curso.' } });
     }
@@ -47,8 +47,7 @@ router.post('/enviar', authMiddleware, async (req, res) => {
 
   const token = crypto.randomBytes(32).toString('hex');
   
-  db.prepare('INSERT INTO curso_invitaciones (curso_id, email, token) VALUES (?, ?, ?)')
-    .run(curso.id, email.toLowerCase().trim(), token);
+  await db.run('INSERT INTO curso_invitaciones (curso_id, email, token) VALUES (?, ?, ?)', curso.id, email.toLowerCase().trim(), token);
 
   const inviteUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/invitacion?token=${token}`;
   
@@ -83,11 +82,11 @@ router.post('/enviar', authMiddleware, async (req, res) => {
 
 // ─── GET /api/invitaciones/verificar ────────────────────────────────────────
 // Este endpoint lee el token y dice a qué curso corresponde y a qué email.
-router.get('/verificar', (req, res) => {
+router.get('/verificar', async (req, res) => {
   const { token } = req.query;
   if (!token) return res.status(400).json({ error: { message: 'Token requerido.' } });
 
-  const invitacion = db.prepare('SELECT ci.*, c.titulo as curso_titulo FROM curso_invitaciones ci JOIN cursos c ON ci.curso_id = c.id WHERE ci.token = ?').get(token);
+  const invitacion = await db.get('SELECT ci.*, c.titulo as curso_titulo FROM curso_invitaciones ci JOIN cursos c ON ci.curso_id = c.id WHERE ci.token = ?', token);
   
   if (!invitacion) {
     return res.status(404).json({ error: { message: 'Invitación no encontrada o inválida.' } });
@@ -109,11 +108,11 @@ router.get('/verificar', (req, res) => {
 
 // ─── POST /api/invitaciones/aceptar ─────────────────────────────────────────
 // Para usuarios ya logueados que aceptan la invitación. (Si no están logueados, el frontend los manda a login/registro y el registro los auto-inscribe)
-router.post('/aceptar', authMiddleware, (req, res) => {
+router.post('/aceptar', authMiddleware, async (req, res) => {
   const { token } = req.body;
   if (!token) return res.status(400).json({ error: { message: 'Token requerido.' } });
 
-  const invitacion = db.prepare('SELECT * FROM curso_invitaciones WHERE token = ?').get(token);
+  const invitacion = await db.get('SELECT * FROM curso_invitaciones WHERE token = ?', token);
   if (!invitacion) return res.status(404).json({ error: { message: 'Invitación inválida.' } });
   if (invitacion.usada) return res.status(400).json({ error: { message: 'Invitación ya utilizada.' } });
 
@@ -123,12 +122,12 @@ router.post('/aceptar', authMiddleware, (req, res) => {
   }
 
   try {
-    db.prepare('INSERT INTO inscripciones (estudiante_id, curso_id) VALUES (?, ?)').run(req.user.id, invitacion.curso_id);
-    db.prepare('UPDATE curso_invitaciones SET usada = 1 WHERE id = ?').run(invitacion.id);
+    await db.run('INSERT INTO inscripciones (estudiante_id, curso_id) VALUES (?, ?)', req.user.id, invitacion.curso_id);
+    await db.run('UPDATE curso_invitaciones SET usada = 1 WHERE id = ?', invitacion.id);
     return res.json({ success: true, message: 'Inscripción exitosa.' });
   } catch (err) {
     if (err.code === 'SQLITE_CONSTRAINT_UNIQUE' || err.message.includes('UNIQUE')) {
-       db.prepare('UPDATE curso_invitaciones SET usada = 1 WHERE id = ?').run(invitacion.id); // Marcar como usada de todas formas
+       await db.run('UPDATE curso_invitaciones SET usada = 1 WHERE id = ?', invitacion.id); // Marcar como usada de todas formas
        return res.json({ success: true, message: 'Ya estabas inscrito.' });
     }
     return res.status(500).json({ error: { message: 'Error interno del servidor.' } });

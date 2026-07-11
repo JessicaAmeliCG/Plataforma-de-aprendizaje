@@ -79,7 +79,9 @@ export default function RegisterPage() {
       if (invitationToken) {
         navigate('/student/dashboard');
       } else {
-        navigate('/verify-email?token=' + (res.user.verification_token || ''));
+        // El backend envía el email de verificación automáticamente.
+        // Redirigir a página de espera de verificación.
+        navigate('/verify-pending');
       }
     } catch (err) {
       setError(err.message || 'Error en el registro');

@@ -44,6 +44,10 @@ export default function LoginPage() {
       // Redirigir según rol
       if (res.user.rol === 'estudiante') {
         navigate('/student/dashboard');
+      } else if (res.user.rol === 'superadmin') {
+        navigate('/admin/dashboard');
+      } else if (res.user.rol === 'moderador') {
+        navigate('/moderador/dashboard');
       } else {
         navigate('/creator/dashboard');
       }

@@ -36,7 +36,7 @@ export default function LandingPage() {
           <div className="hidden md:flex space-x-8 items-center font-medium">
             <a href="#caracteristicas" className="text-gray-600 hover:text-primary-600 dark:text-gray-300 dark:hover:text-primary-400 transition-colors">Características</a>
             <a href="#saas" className="text-gray-600 hover:text-primary-600 dark:text-gray-300 dark:hover:text-primary-400 transition-colors">Para Instituciones</a>
-            <a href="#cursos" className="text-gray-600 hover:text-primary-600 dark:text-gray-300 dark:hover:text-primary-400 transition-colors">Catálogo Libre</a>
+            <button onClick={() => navigate('/register')} className="text-gray-600 hover:text-primary-600 dark:text-gray-300 dark:hover:text-primary-400 transition-colors">Catálogo Libre</button>
           </div>
           <div className="flex space-x-3">
             <button 
@@ -81,10 +81,6 @@ export default function LandingPage() {
             <button onClick={() => navigate('/register')} className="w-full sm:w-auto px-8 py-4 rounded-2xl font-bold text-lg text-white bg-gradient-to-r from-primary-600 to-indigo-600 hover:from-primary-500 hover:to-indigo-500 shadow-xl shadow-primary-500/40 hover:-translate-y-1 transition-all flex items-center justify-center gap-2 group">
               Explorar Cursos Gratis
               <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </button>
-            <button className="w-full sm:w-auto px-8 py-4 rounded-2xl font-bold text-lg text-gray-700 dark:text-white bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 hover:border-primary-500 dark:hover:border-primary-500 shadow-lg hover:-translate-y-1 transition-all flex items-center justify-center gap-2">
-              <Play className="w-5 h-5 text-primary-600 dark:text-primary-400" fill="currentColor" />
-              Ver Demo Institucional
             </button>
           </div>
         </div>
@@ -143,7 +139,10 @@ export default function LandingPage() {
                   </li>
                 ))}
               </ul>
-              <button className="px-8 py-4 rounded-2xl font-bold text-white bg-gray-900 dark:bg-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100 shadow-xl hover:-translate-y-1 transition-all">
+              <button
+                onClick={() => window.open('https://w.app/clyyot', '_blank')}
+                className="px-8 py-4 rounded-2xl font-bold text-white bg-gray-900 dark:bg-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100 shadow-xl hover:-translate-y-1 transition-all"
+              >
                 Contactar Ventas
               </button>
             </div>
@@ -151,8 +150,8 @@ export default function LandingPage() {
               <div className="absolute inset-0 bg-gradient-to-tr from-indigo-500 to-purple-500 rounded-3xl transform rotate-3 scale-105 opacity-20 dark:opacity-40 animate-pulse"></div>
               <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80" alt="Estudiantes felices" className="relative rounded-3xl shadow-2xl border-4 border-white dark:border-gray-700 object-cover aspect-video" />
               
-              {/* Floating Card */}
-              <div className="absolute -bottom-8 -left-8 bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-700 flex items-center gap-4 animate-bounce hover:animate-none">
+              {/* Floating Card - sin bounce */}
+              <div className="absolute -bottom-8 -left-8 bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-700 flex items-center gap-4">
                 <div className="w-12 h-12 bg-emerald-100 dark:bg-emerald-900/50 rounded-full flex items-center justify-center">
                   <CheckCircle className="text-emerald-600 dark:text-emerald-400 w-6 h-6" />
                 </div>
@@ -193,9 +192,9 @@ export default function LandingPage() {
           </div>
           <p>© {new Date().getFullYear()} YourCourse Platform. Todos los derechos reservados.</p>
           <div className="flex space-x-6">
-            <a href="#" className="hover:text-primary-600 transition-colors">Términos</a>
-            <a href="#" className="hover:text-primary-600 transition-colors">Privacidad</a>
-            <a href="#" className="hover:text-primary-600 transition-colors">Contacto</a>
+            <button onClick={() => navigate('/terminos')} className="hover:text-primary-600 transition-colors">Términos</button>
+            <button onClick={() => navigate('/privacidad')} className="hover:text-primary-600 transition-colors">Privacidad</button>
+            <button onClick={() => window.location.href = 'mailto:contacto@yourcourse.mx'} className="hover:text-primary-600 transition-colors">Contacto</button>
           </div>
         </div>
       </footer>

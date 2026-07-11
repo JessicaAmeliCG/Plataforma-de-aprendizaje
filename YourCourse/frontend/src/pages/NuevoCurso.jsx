@@ -6,19 +6,20 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  BookOpen, DollarSign, Clock, Layers, Palette,
+  BookOpen, DollarSign, Clock, Layers, Tag,
   ChevronLeft, Check, Loader2, AlertCircle, Users, Star,
 } from 'lucide-react';
 import { api } from '../services/api';
 import { useT } from '../contexts/I18nContext';
 
-const GRADIENTS = [
-  { label: 'Violeta',   value: 'from-primary-600 to-indigo-700' },
-  { label: 'Azul',      value: 'from-blue-600 to-cyan-600'    },
-  { label: 'Verde',     value: 'from-teal-500 to-emerald-600' },
-  { label: 'Rosa',      value: 'from-rose-500 to-pink-600'    },
-  { label: 'Ámbar',     value: 'from-amber-500 to-orange-600' },
-  { label: 'Índigo',    value: 'from-indigo-600 to-primary-700'},
+/* Categorías temáticas — reemplazan el selector de colores */
+const CATEGORIAS = [
+  { value: 'tecnologia', label: 'Tecnología',   emoji: '💻', color: 'from-blue-600 to-cyan-500'      },
+  { value: 'matematicas',label: 'Matemáticas',  emoji: '📐', color: 'from-indigo-600 to-violet-600'  },
+  { value: 'idiomas',    label: 'Idiomas',      emoji: '🌐', color: 'from-teal-500 to-emerald-600'   },
+  { value: 'negocios',   label: 'Negocios',     emoji: '💼', color: 'from-amber-500 to-orange-600'   },
+  { value: 'diseno',     label: 'Diseño',       emoji: '🎨', color: 'from-rose-500 to-pink-600'      },
+  { value: 'ciencias',   label: 'Ciencias',     emoji: '🔬', color: 'from-emerald-600 to-teal-700'   },
 ];
 
 const MODELOS = [
@@ -27,21 +28,22 @@ const MODELOS = [
   { value: 'suscripcion', label: 'Suscripción mensual', desc: 'Cobro mensual recurrente',     icon: '🔄' },
 ];
 
-// ─── Preview Card (espejo de CursoCard del Dashboard) ─────────────────────────
+// ─── Preview Card ────────────────────────────────────────────────────────────
 function PreviewCard({ form }) {
   const t = useT();
-  const gradient = form.gradient_class || 'from-primary-600 to-indigo-700';
+  const cat = CATEGORIAS.find(c => c.value === form.categoria) || CATEGORIAS[0];
   return (
     <div className="rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-700 shadow-xl bg-white dark:bg-gray-900 w-full max-w-xs mx-auto">
-      <div className={`relative h-40 bg-gradient-to-br ${gradient} flex items-center justify-center`}>
+      <div className={`relative h-40 bg-gradient-to-br ${cat.color} flex items-center justify-center`}>
         <div className="absolute inset-0 opacity-10"
           style={{ backgroundImage: 'radial-gradient(circle at 25% 75%, white 1px, transparent 1px)', backgroundSize: '25px 25px' }}
         />
-        <BookOpen size={38} className="text-white/50" />
-        <span className={`absolute top-3 left-3 text-xs font-bold px-2 py-0.5 rounded-full ${
-          form.estado === 'publicado'
-            ? 'bg-emerald-100 text-emerald-700'
-            : 'bg-amber-100 text-amber-700'
+        <span className="text-5xl z-10">{cat.emoji}</span>
+        <span className={`absolute bottom-2 left-2 text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/20 text-white`}>
+          {cat.label}
+        </span>
+        <span className={`absolute top-2 right-2 text-xs font-bold px-2 py-0.5 rounded-full ${
+          form.estado === 'publicado' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
         }`}>
           {form.estado === 'publicado' ? t('creator.published') : t('creator.draft')}
         </span>
@@ -98,13 +100,13 @@ export default function NuevoCurso() {
   const navigate = useNavigate();
   const t = useT();
 
-  const GRADIENTS = [
-    { label: t('creator.colorViolet'),   value: 'from-primary-600 to-indigo-700' },
-    { label: t('creator.colorBlue'),      value: 'from-blue-600 to-cyan-600'    },
-    { label: t('creator.colorGreen'),     value: 'from-teal-500 to-emerald-600' },
-    { label: t('creator.colorPink'),      value: 'from-rose-500 to-pink-600'    },
-    { label: t('creator.colorAmber'),     value: 'from-amber-500 to-orange-600' },
-    { label: t('creator.colorIndigo'),    value: 'from-indigo-600 to-primary-700'},
+  const CATEGORIAS_I18N = [
+    { value: 'tecnologia', label: 'Tecnología',  emoji: '💻', color: 'from-blue-600 to-cyan-500'      },
+    { value: 'matematicas',label: 'Matemáticas', emoji: '📐', color: 'from-indigo-600 to-violet-600'  },
+    { value: 'idiomas',    label: 'Idiomas',     emoji: '🌐', color: 'from-teal-500 to-emerald-600'   },
+    { value: 'negocios',   label: 'Negocios',    emoji: '💼', color: 'from-amber-500 to-orange-600'   },
+    { value: 'diseno',     label: 'Diseño',      emoji: '🎨', color: 'from-rose-500 to-pink-600'      },
+    { value: 'ciencias',   label: 'Ciencias',    emoji: '🔬', color: 'from-emerald-600 to-teal-700'   },
   ];
 
   const MODELOS = [
@@ -122,7 +124,8 @@ export default function NuevoCurso() {
     visibilidad:    'publico',
     modulos_count:  '',
     duracion:       '',
-    gradient_class: GRADIENTS[0].value,
+    categoria:      'tecnologia',
+    gradient_class: CATEGORIAS_I18N[0].color,
   });
 
   const [loading, setLoading] = useState(false);
@@ -130,6 +133,11 @@ export default function NuevoCurso() {
   const [success, setSuccess] = useState(false);
 
   const set = (key, val) => setForm(f => ({ ...f, [key]: val }));
+  const setCategoria = (cat) => setForm(f => ({
+    ...f,
+    categoria: cat.value,
+    gradient_class: cat.color,
+  }));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -277,22 +285,29 @@ export default function NuevoCurso() {
               )}
             </div>
 
-            {/* Color del curso */}
+            {/* Categoría del curso */}
             <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-6 space-y-4">
               <h3 className="font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                <Palette size={16} className="text-primary-500" /> {t('creator.cardColor')}
+                <Tag size={16} className="text-primary-500" /> Categoría del Curso
               </h3>
-              <div className="flex flex-wrap gap-3">
-                {GRADIENTS.map(g => (
+              <p className="text-xs text-gray-400">Elige la categoría — esto determina el ícono y color de la tarjeta.</p>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {CATEGORIAS_I18N.map(cat => (
                   <button
-                    key={g.value}
+                    key={cat.value}
                     type="button"
-                    onClick={() => set('gradient_class', g.value)}
-                    title={g.label}
-                    className={`w-10 h-10 rounded-xl bg-gradient-to-br ${g.value} transition-all ${
-                      form.gradient_class === g.value ? 'ring-3 ring-offset-2 ring-primary-500 scale-110' : 'hover:scale-105'
+                    onClick={() => setCategoria(cat)}
+                    className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all text-center ${
+                      form.categoria === cat.value
+                        ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20 shadow-sm'
+                        : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
                     }`}
-                  />
+                  >
+                    <span className="text-3xl">{cat.emoji}</span>
+                    <span className={`text-xs font-bold ${form.categoria === cat.value ? 'text-primary-600 dark:text-primary-400' : 'text-gray-700 dark:text-gray-300'}`}>
+                      {cat.label}
+                    </span>
+                  </button>
                 ))}
               </div>
             </div>

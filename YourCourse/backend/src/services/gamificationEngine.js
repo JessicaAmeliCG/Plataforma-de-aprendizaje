@@ -1,290 +1,152 @@
 /**
- * gamificationEngine.js
- * YourCourse — Motor de Experiencia (XP) y Niveles
- *
- * Procesa el progreso del usuario, calcula el XP otorgado por cada acción
- * y determina si el usuario ha subido de nivel usando una fórmula exponencial.
- *
- * Uso:
- *   const engine = new GamificationEngine(dbPool);
- *   const result = await engine.procesarAccion({
- *     usuario_id: 'uuid',
- *     academia_id: 'uuid',
- *     accion: 'LECCION_COMPLETADA',
- *     referencia_id: 'uuid-leccion',
- *   });
+ * gamificationEngine.js — Motor de Experiencia (XP), Niveles y Logros
+ * Compatible con SQLite (better-sqlite3) y PostgreSQL de forma asíncrona
  */
 
-const { Pool } = require('pg');
+const db = require('../config/db');
 
-// ─── Configuración del sistema de XP ──────────────────────────────────────────
-
-/**
- * Mapa de XP base por tipo de acción.
- * Estos valores se pueden mover a la base de datos para hacerlos configurables.
- */
 const XP_POR_ACCION = {
   LOGIN_DIARIO:        25,
-  LECCION_COMPLETADA:  10,
-  MODULO_COMPLETADO:   50,
-  CURSO_COMPLETADO:   200,
-  PARTICIPACION_FORO:  15,
-  RESPUESTA_UTIL:      30,
-  BONUS_ADMIN:          0, // El monto lo determina el admin en metadatos
+  INSCRIBIRSE_CURSO:  100,
+  LECCION_COMPLETADA:  50,
+  CURSO_COMPLETADO:   500,
+  CREAR_DUDA:          20,
+  CREAR_POST:          30,
+  RESPONDER_POST:      15,
 };
 
+const LOGROS_CONFIG = [
+  { id: 'primer_paso',   nombre: 'Primer Paso 🏁',        desc: 'Inscríbete en tu primer curso.' },
+  { id: 'explorador',    nombre: 'Explorador 🧭',         desc: 'Completa tu primera lección.' },
+  { id: 'graduado',      nombre: 'Graduado 🎓',           desc: 'Completa un curso al 100%.' },
+  { id: 'curioso',       nombre: 'Curioso 💬',            desc: 'Realiza tu primera duda en clase.' },
+  { id: 'comunicador',   nombre: 'Comunicador 📣',        desc: 'Publica tu primer post en la comunidad.' },
+  { id: 'superestrella', nombre: 'Súper Estrella ⭐',     desc: 'Alcanza el nivel 5 de aprendizaje.' },
+];
+
 /**
- * Fórmula de XP requerido para alcanzar un nivel:
- *   xp_requerido(n) = XP_BASE * MULTIPLICADOR^(n - 1)
- *
- * Donde n es el orden del nivel (1=Caminante, 2=Explorador, etc.).
- *
- * Ejemplos:
- *   Nivel 1 (Caminante):  0     (nivel inicial, sin requisito)
- *   Nivel 2 (Explorador): 500
- *   Nivel 3 (Aprendiz):   1500  (no sigue la fórmula exacta — ver init.sql)
+ * Asegura que el usuario tenga un registro de gamificación
  */
-const XP_BASE         = 500;
-const MULTIPLICADOR   = 2.5;
+async function asegurarRegistro(usuarioId) {
+  await db.run(`
+    INSERT INTO gamificacion (usuario_id, puntos_total, nivel, racha_dias, logros)
+    VALUES (?, 0, 1, 0, '[]')
+    ON CONFLICT (usuario_id) DO NOTHING
+  `, usuarioId);
+}
 
-// ─── Motor de Gamificación ─────────────────────────────────────────────────────
+/**
+ * Procesa una acción y otorga XP/logros al usuario
+ */
+async function procesarAccion(usuarioId, accion, metadatos = {}) {
+  try {
+    await asegurarRegistro(usuarioId);
 
-class GamificationEngine {
-  /**
-   * @param {Pool} pool — Instancia de pg.Pool configurada con la conexión a PostgreSQL
-   */
-  constructor(pool) {
-    if (!pool) {
-      throw new Error('[GamificationEngine] Se requiere una instancia de pg.Pool.');
-    }
-    this._pool = pool;
-  }
+    const xpGanado = XP_POR_ACCION[accion] || 0;
+    if (xpGanado === 0) return { xp_ganado: 0, nivel_anterior: 1, nivel_nuevo: 1 };
 
-  // ── Métodos privados ────────────────────────────────────────────────────────
+    // 1. Obtener estado actual
+    const current = await db.get('SELECT * FROM gamificacion WHERE usuario_id = ?', usuarioId);
+    const puntosAnteriores = current.puntos_total;
+    const puntosNuevos = puntosAnteriores + xpGanado;
 
-  /**
-   * Calcula el XP que otorga una acción.
-   * Para BONUS_ADMIN, el valor viene en los metadatos.
-   *
-   * @param {string} accion
-   * @param {object} [metadatos]
-   * @returns {number}
-   */
-  _calcularXP(accion, metadatos = {}) {
-    if (accion === 'BONUS_ADMIN') {
-      const xp = parseInt(metadatos?.xp_bonus, 10);
-      if (!xp || xp <= 0) {
-        throw new Error('[GamificationEngine] BONUS_ADMIN requiere metadatos.xp_bonus > 0.');
+    // Calcular nivel (500 XP por nivel)
+    const nivelAnterior = current.nivel;
+    const nivelNuevo = Math.floor(puntosNuevos / 500) + 1;
+    const levelUp = nivelNuevo > nivelAnterior;
+
+    // 2. Evaluar logros a desbloquear
+    let logros = JSON.parse(current.logros || '[]');
+    const nuevosLogros = [];
+
+    const unlockLogro = (logroId) => {
+      if (!logros.some(l => l.id === logroId)) {
+        const config = LOGROS_CONFIG.find(c => c.id === logroId);
+        if (config) {
+          const unlockedLogro = {
+            ...config,
+            unlocked_at: new Date().toISOString()
+          };
+          logros.push(unlockedLogro);
+          nuevosLogros.push(unlockedLogro);
+        }
       }
-      return xp;
+    };
+
+    // Evaluar por acción o nivel
+    if (accion === 'INSCRIBIRSE_CURSO') unlockLogro('primer_paso');
+    if (accion === 'LECCION_COMPLETADA') unlockLogro('explorador');
+    if (accion === 'CURSO_COMPLETADO') unlockLogro('graduado');
+    if (accion === 'CREAR_DUDA') unlockLogro('curioso');
+    if (accion === 'CREAR_POST') unlockLogro('comunicador');
+    if (nivelNuevo >= 5) unlockLogro('superestrella');
+
+    // 3. Actualizar BD
+    await db.run(`
+      UPDATE gamificacion
+      SET puntos_total = ?, nivel = ?, logros = ?
+      WHERE usuario_id = ?
+    `, puntosNuevos, nivelNuevo, JSON.stringify(logros), usuarioId);
+
+    // Crear notificaciones en la plataforma si sube de nivel o desbloquea logro
+    if (levelUp) {
+      await db.run(`
+        INSERT INTO notificaciones (usuario_id, tipo, titulo, mensaje, enlace)
+        VALUES (?, 'info', '¡Subiste de Nivel! 🎉', ?, '/student/gamificacion')
+      `, usuarioId, `¡Felicidades! Has alcanzado el Nivel ${nivelNuevo}. ¡Sigue así!`);
     }
 
-    const xp = XP_POR_ACCION[accion];
-    if (xp === undefined) {
-      throw new Error(`[GamificationEngine] Acción desconocida: "${accion}".`);
+    for (const logro of nuevosLogros) {
+      await db.run(`
+        INSERT INTO notificaciones (usuario_id, tipo, titulo, mensaje, enlace)
+        VALUES (?, 'info', '¡Logro Desbloqueado! 🏆', ?, '/student/gamificacion')
+      `, usuarioId, `Desbloqueaste: ${logro.nombre} - ${logro.desc}`);
     }
-    return xp;
-  }
-
-  /**
-   * Evalúa si el nuevo XP total supera el umbral del siguiente nivel.
-   * Compara contra los niveles almacenados en la base de datos (tabla niveles_globales).
-   *
-   * @param {object} client — Cliente de transacción de pg
-   * @param {number} xpTotalNuevo — XP total del usuario después de sumar el nuevo XP
-   * @param {string|null} nivelActualId — UUID del nivel actual del usuario
-   * @returns {{ levelUp: boolean, nuevoNivelId: string|null, nuevoNivelNombre: string|null }}
-   */
-  async _evaluarNivel(client, xpTotalNuevo, nivelActualId) {
-    // Obtener todos los niveles ordenados ascendentemente
-    const { rows: niveles } = await client.query(
-      `SELECT id, nombre, xp_requerido, nivel_orden
-       FROM niveles_globales
-       ORDER BY nivel_orden ASC`
-    );
-
-    if (!niveles.length) {
-      return { levelUp: false, nuevoNivelId: nivelActualId, nuevoNivelNombre: null };
-    }
-
-    // Encontrar el nivel más alto que el usuario puede alcanzar con su XP actual
-    let nivelAlcanzado = niveles[0]; // Mínimo: el primer nivel
-    for (const nivel of niveles) {
-      if (xpTotalNuevo >= nivel.xp_requerido) {
-        nivelAlcanzado = nivel;
-      } else {
-        break; // Los niveles están ordenados, si no alcanza este, tampoco los siguientes
-      }
-    }
-
-    const levelUp = nivelActualId !== nivelAlcanzado.id;
 
     return {
-      levelUp,
-      nuevoNivelId:     nivelAlcanzado.id,
-      nuevoNivelNombre: nivelAlcanzado.nombre,
-      nivelOrden:       nivelAlcanzado.nivel_orden,
+      success: true,
+      xp_ganado: xpGanado,
+      xp_total: puntosNuevos,
+      nivel_anterior: nivelAnterior,
+      nivel_nuevo: nivelNuevo,
+      level_up: levelUp,
+      nuevos_logros: nuevosLogros,
     };
-  }
-
-  // ── API Pública ─────────────────────────────────────────────────────────────
-
-  /**
-   * Procesa una acción del usuario, actualiza su XP en la BD y determina
-   * si subió de nivel. Todo en una transacción atómica.
-   *
-   * @param {object} params
-   * @param {string} params.usuario_id   — UUID del usuario
-   * @param {string} params.academia_id  — UUID de la academia donde ocurrió la acción
-   * @param {string} params.accion       — Tipo de acción (ver XP_POR_ACCION)
-   * @param {string} [params.referencia_id]  — UUID del recurso relacionado (lección, módulo, etc.)
-   * @param {string} [params.referencia_tipo] — Tipo del recurso ('leccion', 'modulo', 'curso', 'foro')
-   * @param {object} [params.metadatos]  — Datos adicionales del evento
-   *
-   * @returns {Promise<{
-   *   xp_ganado: number,
-   *   xp_total:  number,
-   *   levelUp:   boolean,
-   *   nivel_nombre: string|null,
-   *   nivel_orden:  number|null,
-   * }>}
-   */
-  async procesarAccion({
-    usuario_id,
-    academia_id,
-    accion,
-    referencia_id  = null,
-    referencia_tipo = null,
-    metadatos      = {},
-  }) {
-    // ── Validaciones de entrada ──────────────────────────────────────────────
-    if (!usuario_id)  throw new Error('[GamificationEngine] usuario_id es requerido.');
-    if (!academia_id) throw new Error('[GamificationEngine] academia_id es requerido.');
-    if (!accion)      throw new Error('[GamificationEngine] accion es requerida.');
-
-    const xpGanado = this._calcularXP(accion, metadatos);
-
-    // ── Transacción atómica ──────────────────────────────────────────────────
-    const client = await this._pool.connect();
-    try {
-      await client.query('BEGIN');
-
-      // 1. Obtener el estado actual del usuario (con bloqueo para evitar race conditions)
-      const { rows } = await client.query(
-        `SELECT xp_total, nivel_id
-         FROM usuarios
-         WHERE id = $1
-         FOR UPDATE`,
-        [usuario_id]
-      );
-
-      if (!rows.length) {
-        throw new Error(`[GamificationEngine] Usuario no encontrado: ${usuario_id}`);
-      }
-
-      const { xp_total: xpActual, nivel_id: nivelActualId } = rows[0];
-      const xpTotalNuevo = xpActual + xpGanado;
-
-      // 2. Evaluar si el usuario sube de nivel
-      const { levelUp, nuevoNivelId, nuevoNivelNombre, nivelOrden } =
-        await this._evaluarNivel(client, xpTotalNuevo, nivelActualId);
-
-      // 3. Actualizar el XP total (y el nivel si aplica) del usuario
-      await client.query(
-        `UPDATE usuarios
-         SET xp_total  = $1,
-             nivel_id  = $2,
-             updated_at = NOW()
-         WHERE id = $3`,
-        [xpTotalNuevo, nuevoNivelId, usuario_id]
-      );
-
-      // 4. Registrar el evento en el log de XP (registro_xp es inmutable)
-      await client.query(
-        `INSERT INTO registro_xp
-           (usuario_id, academia_id, accion, xp_otorgado, referencia_id, referencia_tipo, metadatos)
-         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-        [
-          usuario_id,
-          academia_id,
-          accion,
-          xpGanado,
-          referencia_id,
-          referencia_tipo,
-          JSON.stringify({
-            ...metadatos,
-            xp_previo:    xpActual,
-            xp_nuevo:     xpTotalNuevo,
-            level_up:     levelUp,
-            nivel_nombre: nuevoNivelNombre,
-          }),
-        ]
-      );
-
-      await client.query('COMMIT');
-
-      // 5. Retornar el resultado estructurado
-      return {
-        xp_ganado:   xpGanado,
-        xp_total:    xpTotalNuevo,
-        levelUp,
-        nivel_nombre: nuevoNivelNombre,
-        nivel_orden:  nivelOrden ?? null,
-      };
-
-    } catch (err) {
-      await client.query('ROLLBACK');
-      throw err;
-    } finally {
-      client.release();
-    }
-  }
-
-  /**
-   * Consulta el historial de XP de un usuario (últimos N registros).
-   *
-   * @param {string} usuario_id
-   * @param {number} [limite=20]
-   * @returns {Promise<object[]>}
-   */
-  async obtenerHistorial(usuario_id, limite = 20) {
-    const { rows } = await this._pool.query(
-      `SELECT
-         r.id,
-         r.accion,
-         r.xp_otorgado,
-         r.referencia_tipo,
-         r.created_at,
-         a.nombre AS academia_nombre
-       FROM registro_xp r
-       LEFT JOIN academias a ON a.id = r.academia_id
-       WHERE r.usuario_id = $1
-       ORDER BY r.created_at DESC
-       LIMIT $2`,
-      [usuario_id, limite]
-    );
-    return rows;
-  }
-
-  /**
-   * Calcula el XP necesario para el siguiente nivel usando la fórmula exponencial.
-   * Útil para barras de progreso en el frontend.
-   *
-   * @param {number} nivelOrden — Nivel actual (1-indexed)
-   * @returns {{ xp_nivel_actual: number, xp_nivel_siguiente: number, formula: string }}
-   */
-  static calcularUmbralNivel(nivelOrden) {
-    const xpActual   = nivelOrden <= 1 ? 0 : Math.round(XP_BASE * Math.pow(MULTIPLICADOR, nivelOrden - 2));
-    const xpSiguiente = Math.round(XP_BASE * Math.pow(MULTIPLICADOR, nivelOrden - 1));
-    return {
-      xp_nivel_actual:    xpActual,
-      xp_nivel_siguiente: xpSiguiente,
-      formula: `${XP_BASE} × ${MULTIPLICADOR}^(n-1)`,
-    };
+  } catch(err) {
+    console.error('[GamificationEngine] Error:', err.message);
+    return { success: false, error: err.message };
   }
 }
 
+/**
+ * Obtiene el perfil de gamificación de un usuario
+ */
+async function obtenerPerfil(usuarioId) {
+  await asegurarRegistro(usuarioId);
+  return await db.get(`
+    SELECT puntos_total, nivel, racha_dias, logros
+    FROM gamificacion
+    WHERE usuario_id = ?
+  `, usuarioId);
+}
+
+/**
+ * Obtiene la tabla de posiciones general (Top 10) filtrada por academia
+ */
+async function obtenerLeaderboard(academiaId = 1) {
+  return await db.query(`
+    SELECT g.puntos_total, g.nivel, u.nombre, u.avatar_color
+    FROM gamificacion g
+    JOIN usuarios u ON u.id = g.usuario_id
+    WHERE u.academia_id = ?
+    ORDER BY g.puntos_total DESC
+    LIMIT 10
+  `, [academiaId]);
+}
+
 module.exports = {
-  GamificationEngine,
-  XP_POR_ACCION,
+  procesarAccion,
+  obtenerPerfil,
+  obtenerLeaderboard,
+  LOGROS_CONFIG,
 };
