@@ -117,21 +117,31 @@ function ModalVistaPrevia({ curso, onClose, onEnroll, isEnrolled, enrolling }) {
     >
       <div className="bg-white dark:bg-gray-900 rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden animate-fade-in-up">
         {/* Header del modal */}
-        <div className={`h-40 bg-gradient-to-br ${meta.color} relative flex items-end p-6 shrink-0`}>
+        <div 
+          className={`h-40 bg-gradient-to-br ${meta.color} relative flex items-end p-6 shrink-0`}
+          style={curso.thumbnail || meta.image ? {
+            backgroundImage: `url(${curso.thumbnail || meta.image})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center'
+          } : {}}
+        >
+          {(curso.thumbnail || meta.image) && (
+            <div className="absolute inset-0 bg-black/50" />
+          )}
           <div className="absolute inset-0 opacity-10"
             style={{ backgroundImage: 'radial-gradient(circle at 20% 80%, white 1px, transparent 1px)', backgroundSize: '25px 25px' }} />
-          <span className="absolute top-4 right-4 text-4xl">{meta.emoji}</span>
+          <span className="absolute top-4 right-4 text-4xl z-10 drop-shadow-md">{meta.emoji}</span>
           <button
             onClick={onClose}
-            className="absolute top-4 left-4 w-8 h-8 rounded-full bg-black/30 flex items-center justify-center text-white hover:bg-black/50 transition-colors"
+            className="absolute top-4 left-4 w-8 h-8 rounded-full bg-black/30 flex items-center justify-center text-white hover:bg-black/50 transition-colors z-10"
           >
             <X size={16} />
           </button>
           <div className="relative z-10">
-            <span className="text-xs font-bold bg-white/20 text-white px-2 py-0.5 rounded-full">
+            <span className="text-xs font-bold bg-white/20 text-white px-2 py-0.5 rounded-full backdrop-blur-sm">
               {meta.label}
             </span>
-            <h2 className="text-xl font-black text-white mt-1 leading-tight">{curso.titulo}</h2>
+            <h2 className="text-xl font-black text-white mt-1 leading-tight drop-shadow-md">{curso.titulo}</h2>
           </div>
         </div>
 

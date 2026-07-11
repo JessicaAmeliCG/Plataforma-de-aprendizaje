@@ -74,6 +74,9 @@ function CursoCard({ curso }) {
             <CheckCircle size={14} className="text-white" />
           </div>
         )}
+        <span className="absolute bottom-2 left-2 text-[10px] font-bold px-2 py-0.5 rounded-full z-10 bg-white/20 text-white backdrop-blur-sm">
+          {curso.categoria ? (curso.categoria.charAt(0).toUpperCase() + curso.categoria.slice(1)) : 'General'}
+        </span>
       </div>
 
       <div className="flex flex-col flex-1 p-4 gap-3">
