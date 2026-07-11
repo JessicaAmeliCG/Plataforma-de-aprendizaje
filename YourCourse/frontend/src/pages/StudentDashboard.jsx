@@ -32,16 +32,16 @@ function ProgressBar({ value = 0 }) {
 
 /* ─── Tarjeta de curso inscrito ────────────────────────────────────────────── */
 const CATEGORY_META = {
-  tecnologia: { emoji: '💻', color: 'from-blue-600 to-cyan-500'     },
-  matematicas: { emoji: '📐', color: 'from-indigo-600 to-violet-600' },
-  idiomas:    { emoji: '🌐', color: 'from-teal-500 to-emerald-600'  },
-  negocios:   { emoji: '💼', color: 'from-amber-500 to-orange-600'  },
-  diseno:     { emoji: '🎨', color: 'from-rose-500 to-pink-600'     },
-  ciencias:   { emoji: '🔬', color: 'from-emerald-600 to-teal-700'  },
+  tecnologia: { emoji: '💻', color: 'from-blue-600 to-cyan-500', image: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=600&auto=format&fit=crop&q=80' },
+  matematicas: { emoji: '📐', color: 'from-indigo-600 to-violet-600', image: 'https://images.unsplash.com/photo-1509228468518-180dd4864904?w=600&auto=format&fit=crop&q=80' },
+  idiomas:    { emoji: '🌐', color: 'from-teal-500 to-emerald-600', image: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=600&auto=format&fit=crop&q=80' },
+  negocios:   { emoji: '💼', color: 'from-amber-500 to-orange-600', image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&auto=format&fit=crop&q=80' },
+  diseno:     { emoji: '🎨', color: 'from-rose-500 to-pink-600', image: 'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?w=600&auto=format&fit=crop&q=80' },
+  ciencias:   { emoji: '🔬', color: 'from-emerald-600 to-teal-700', image: 'https://images.unsplash.com/photo-1532187643603-ba119ca4109e?w=600&auto=format&fit=crop&q=80' },
 };
 
 function getCategoryMeta(categoria) {
-  return CATEGORY_META[categoria] || { emoji: '📚', color: 'from-primary-600 to-primary-700' };
+  return CATEGORY_META[categoria] || { emoji: '📚', color: 'from-primary-600 to-primary-700', image: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=600&auto=format&fit=crop&q=80' };
 }
 
 function CursoCard({ curso }) {
@@ -55,12 +55,22 @@ function CursoCard({ curso }) {
       onClick={() => navigate(`/student/cursos/${curso.id}/ver`)}
       className="group relative flex flex-col bg-white dark:bg-gray-900 rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-800 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 cursor-pointer"
     >
-      <div className={`h-36 bg-gradient-to-br ${meta.color} flex items-center justify-center relative overflow-hidden`}>
+      <div 
+        className={`h-36 bg-gradient-to-br ${meta.color} flex items-center justify-center relative overflow-hidden`}
+        style={curso.thumbnail || meta.image ? {
+          backgroundImage: `url(${curso.thumbnail || meta.image})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center'
+        } : {}}
+      >
+        {(curso.thumbnail || meta.image) && (
+          <div className="absolute inset-0 bg-black/40" />
+        )}
         <div className="absolute inset-0 opacity-10"
           style={{ backgroundImage: 'radial-gradient(circle at 20% 80%, white 1px, transparent 1px)', backgroundSize: '25px 25px' }} />
-        <span className="text-5xl z-10">{meta.emoji}</span>
+        <span className="text-5xl z-10 drop-shadow-md">{meta.emoji}</span>
         {completed && (
-          <div className="absolute top-2 right-2 w-7 h-7 rounded-full bg-emerald-500 flex items-center justify-center shadow-lg">
+          <div className="absolute top-2 right-2 w-7 h-7 rounded-full bg-emerald-500 flex items-center justify-center shadow-lg z-10">
             <CheckCircle size={14} className="text-white" />
           </div>
         )}
