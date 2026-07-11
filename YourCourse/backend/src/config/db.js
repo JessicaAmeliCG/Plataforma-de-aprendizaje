@@ -442,6 +442,33 @@ async function initDb() {
     `);
   }
 
+  // ─── Migraciones sobre tablas existentes ─────────────────────────────────────
+  if (isPostgres) {
+    try {
+      const checkCol = await pool.query(`
+        SELECT column_name FROM information_schema.columns 
+        WHERE table_name = 'lecciones' AND column_name = 'iframe_url'
+      `);
+      if (checkCol.rowCount === 0) {
+        console.log('🔄 Migrando PostgreSQL: Agregando columna iframe_url a lecciones...');
+        await pool.query(`ALTER TABLE lecciones ADD COLUMN iframe_url TEXT DEFAULT ''`);
+      }
+    } catch (err) {
+      console.error('Error migrando columna iframe_url en PostgreSQL:', err);
+    }
+  } else {
+    try {
+      const columns = sqliteDb.prepare("PRAGMA table_info(lecciones)").all();
+      const hasIframeUrl = columns.some(c => c.name === 'iframe_url');
+      if (!hasIframeUrl) {
+        console.log('🔄 Migrando SQLite: Agregando columna iframe_url a lecciones...');
+        sqliteDb.exec(`ALTER TABLE lecciones ADD COLUMN iframe_url TEXT DEFAULT ''`);
+      }
+    } catch (err) {
+      console.error('Error migrando columna iframe_url en SQLite:', err);
+    }
+  }
+
   // ─── Seeders de Inicialización ──────────────────────────────────────────────
   const checkAcademia = await db.get('SELECT COUNT(*) as c FROM academias WHERE id = 1');
   if (parseInt(checkAcademia?.c || checkAcademia?.count || 0) === 0) {
