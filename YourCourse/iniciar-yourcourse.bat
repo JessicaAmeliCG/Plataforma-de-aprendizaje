@@ -17,15 +17,15 @@ for /f "tokens=5" %%a in ('netstat -ano ^| findstr ":5173 "') do (
     taskkill /PID %%a /F >nul 2>&1
 )
 
-timeout /t 2 /nobreak >nul
+ping -n 3 127.0.0.1 >nul
 
 echo [YourCourse] Iniciando Backend en puerto 3000...
-start /B /D "C:\Users\100019201\.gemini\antigravity\scratch\Plataforma-de-aprendizaje\YourCourse\backend" "" node.exe src/index.js
+start /D "C:\Users\100019201\.gemini\antigravity\scratch\Plataforma-de-aprendizaje\YourCourse\backend" "" "C:\Program Files\nodejs\node.exe" src/index.js
 
-timeout /t 5 /nobreak >nul
+ping -n 6 127.0.0.1 >nul
 
 echo [YourCourse] Iniciando Frontend en puerto 5173...
-start /B /D "C:\Users\100019201\.gemini\antigravity\scratch\Plataforma-de-aprendizaje\YourCourse\frontend" "" npm.cmd run dev -- --port 5173
+start /D "C:\Users\100019201\.gemini\antigravity\scratch\Plataforma-de-aprendizaje\YourCourse\frontend" "" "C:\Program Files\nodejs\npm.cmd" run dev -- --port 5173
 
 echo [YourCourse] Servidores iniciados.
 echo   Frontend: http://localhost:5173
