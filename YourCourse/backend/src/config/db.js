@@ -449,21 +449,29 @@ async function initDb() {
     await db.run("INSERT INTO academias (id, nombre, slug) VALUES (1, 'Academia Principal', 'principal')");
 
     const superadminHash = bcrypt.hashSync('SuperAdmin2026!', 12);
-    const creatorHash = bcrypt.hashSync('YourCourse2025!', 12);
-    const estHash = bcrypt.hashSync('Est123456!', 12);
+    const adminHash      = bcrypt.hashSync('Admin1234!', 12);
+    const moderadorHash  = bcrypt.hashSync('Mod2026!', 12);
+    const creatorHash    = bcrypt.hashSync('Crea123456!', 12);
+    const estHash        = bcrypt.hashSync('Est123456!', 12);
 
-    // Creadores/Admins
-    const admin = await db.run("INSERT INTO usuarios (nombre, email, password_hash, rol, bio, avatar_color, academia_id, is_verified) VALUES (?, ?, ?, ?, ?, ?, 1, 1)", 
-      ['Admin Plataforma', 'admin@yourcourse.mx', superadminHash, 'superadmin', 'Gestor global de la plataforma', 'from-slate-700 to-slate-900']
+    // Creadores/Admins/Moderadores
+    await db.run("INSERT INTO usuarios (nombre, email, password_hash, rol, bio, avatar_color, academia_id, is_verified) VALUES (?, ?, ?, ?, ?, ?, 1, 1)", 
+      ['SuperAdmin Global', 'superadmin@yourcourse.mx', superadminHash, 'superadmin', 'Gestor global del sistema', 'from-slate-700 to-slate-900']
+    );
+    await db.run("INSERT INTO usuarios (nombre, email, password_hash, rol, bio, avatar_color, academia_id, is_verified) VALUES (?, ?, ?, ?, ?, ?, 1, 1)", 
+      ['Admin Plataforma', 'admin@yourcourse.mx', adminHash, 'superadmin', 'Gestor de la plataforma', 'from-slate-700 to-slate-900']
+    );
+    await db.run("INSERT INTO usuarios (nombre, email, password_hash, rol, bio, avatar_color, academia_id, is_verified) VALUES (?, ?, ?, ?, ?, ?, 1, 1)", 
+      ['Moderador Foros', 'moderador@yourcourse.mx', moderadorHash, 'moderador', 'Moderador del foro y comunidad', 'from-slate-700 to-slate-900']
     );
     const creator = await db.run("INSERT INTO usuarios (nombre, email, password_hash, rol, bio, avatar_color, academia_id, is_verified) VALUES (?, ?, ?, ?, ?, ?, 1, 1)", 
-      ['Jessica Castro', 'creador@yourcourse.mx', creatorHash, 'creador', 'Educadora apasionada', 'from-violet-500 to-purple-700']
+      ['Creador Contenido', 'creador@yourcourse.mx', creatorHash, 'creador', 'Educadora apasionada', 'from-violet-500 to-purple-700']
     );
     
     // Estudiantes
     const creatorId = creator.lastInsertRowid;
     const est1 = await db.run("INSERT INTO usuarios (nombre, email, password_hash, rol, bio, avatar_color, academia_id, is_verified) VALUES (?, ?, ?, ?, ?, ?, 1, 1)",
-      ['Carlos Rodríguez', 'carlos@gmail.com', estHash, 'estudiante', '', 'from-blue-500 to-cyan-600']
+      ['Carlos Estudiante', 'carlos@gmail.com', estHash, 'estudiante', '', 'from-blue-500 to-cyan-600']
     );
     const est2 = await db.run("INSERT INTO usuarios (nombre, email, password_hash, rol, bio, avatar_color, academia_id, is_verified) VALUES (?, ?, ?, ?, ?, ?, 1, 1)",
       ['Ana Jiménez', 'ana@gmail.com', estHash, 'estudiante', '', 'from-emerald-500 to-teal-600']
