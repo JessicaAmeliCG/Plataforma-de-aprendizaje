@@ -214,7 +214,7 @@ export default function StudentCursoViewer() {
             {(() => {
               if (leccionActiva?.iframe_url && leccionActiva.iframe_url.trim()) {
                 const urlStr = leccionActiva.iframe_url.trim();
-                if (urlStr.startsWith('<iframe')) {
+                if (urlStr.toLowerCase().includes('<iframe')) {
                   // Ajustar iframe para ser responsivo dentro de nuestro div
                   const responsiveIframe = urlStr
                     .replace(/width="[0-9]+"/, 'width="100%"')

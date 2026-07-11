@@ -30,11 +30,41 @@ import ReactPlayer from 'react-player';
 
 // ─── Reproductor de video principal ──────────────────────────────────────────
 function VideoPlayer({ leccion, onEnded }) {
+  if (leccion?.iframe_url && leccion.iframe_url.trim()) {
+    const urlStr = leccion.iframe_url.trim();
+    if (urlStr.toLowerCase().includes('<iframe')) {
+      const responsiveIframe = urlStr
+        .replace(/width="[0-9]+"/, 'width="100%"')
+        .replace(/height="[0-9]+"/, 'height="100%"')
+        .replace(/position:\s*absolute/, '');
+      return (
+        <div className="w-full aspect-video bg-black rounded-2xl overflow-hidden shadow-2xl relative">
+          <div 
+            className="absolute top-0 left-0 w-full h-full"
+            dangerouslySetInnerHTML={{ __html: responsiveIframe }}
+          />
+        </div>
+      );
+    } else {
+      return (
+        <div className="w-full aspect-video bg-black rounded-2xl overflow-hidden shadow-2xl relative">
+          <ReactPlayer
+            url={urlStr}
+            controls={true}
+            width="100%"
+            height="100%"
+            className="absolute top-0 left-0"
+          />
+        </div>
+      );
+    }
+  }
+
   if (!leccion?.video_url) {
     return (
       <div className="w-full aspect-video bg-gray-900 rounded-2xl flex flex-col items-center justify-center gap-4">
         <Film size={48} className="text-gray-700" />
-        <p className="text-gray-500 text-sm">Esta lección no tiene video</p>
+        <p className="text-gray-500 text-sm">Esta lección no tiene video ni reproductor externo</p>
       </div>
     );
   }
@@ -78,9 +108,13 @@ function LeccionItem({ leccion, index, isActive, isCompleted, onClick }) {
           {leccion.titulo}
         </p>
         <div className="flex items-center gap-1.5 mt-0.5">
-          {leccion.video_url
-            ? <span className={`text-[10px] flex items-center gap-0.5 ${isActive ? 'text-white/60' : 'text-gray-400'}`}><Video size={9} /> Video</span>
-            : <span className={`text-[10px] flex items-center gap-0.5 ${isActive ? 'text-white/60' : 'text-gray-400'}`}><Film size={9} /> Sin video</span>}
+          {leccion.video_url ? (
+            <span className={`text-[10px] flex items-center gap-0.5 ${isActive ? 'text-white/60' : 'text-gray-400'}`}><Video size={9} /> Video local</span>
+          ) : leccion.iframe_url ? (
+            <span className={`text-[10px] flex items-center gap-0.5 ${isActive ? 'text-white/60' : 'text-gray-400'}`}><Video size={9} /> Externo (iFrame)</span>
+          ) : (
+            <span className={`text-[10px] flex items-center gap-0.5 ${isActive ? 'text-white/60' : 'text-gray-400'}`}><Film size={9} /> Sin video</span>
+          )}
         </div>
       </div>
       {isActive && <ChevronRight size={14} className="text-white/60 shrink-0" />}
