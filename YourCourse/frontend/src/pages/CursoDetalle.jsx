@@ -163,16 +163,40 @@ function VideoUploadZone({ cursoId, onSuccess }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!titulo.trim()) { setError(t('creator.titleRequired')); return; }
-    if (sourceType === 'iframe' && !iframeUrl.trim()) { setError('La URL o código iFrame es requerido.'); return; }
+    setError('');
     
-    setUploading(true); setProgress(0); setError('');
+    if (!titulo.trim()) {
+      setError(t('creator.titleRequired'));
+      return;
+    }
+    
+    let finalSourceType = sourceType;
+    // Auto-detectar e intercambiar el tipo de fuente si el usuario llenó el campo opuesto al tab activo
+    if (sourceType === 'file' && !archivo && iframeUrl.trim()) {
+      finalSourceType = 'iframe';
+      setSourceType('iframe');
+    } else if (sourceType === 'iframe' && !iframeUrl.trim() && archivo) {
+      finalSourceType = 'file';
+      setSourceType('file');
+    }
+    
+    if (finalSourceType === 'file' && !archivo) {
+      setError('Por favor, selecciona o arrastra un archivo de video (.mp4).');
+      return;
+    }
+    
+    if (finalSourceType === 'iframe' && !iframeUrl.trim()) {
+      setError('La URL o código iFrame es requerido.');
+      return;
+    }
+    
+    setUploading(true); setProgress(0);
     try {
       const fd = new FormData();
       fd.append('titulo', titulo.trim());
-      if (sourceType === 'file' && archivo) {
+      if (finalSourceType === 'file' && archivo) {
         fd.append('video', archivo);
-      } else if (sourceType === 'iframe') {
+      } else if (finalSourceType === 'iframe') {
         fd.append('iframe_url', iframeUrl.trim());
       }
       
